@@ -1,0 +1,353 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>NetShield – Tourist Wi-Fi Checker</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg: #07090f;
+      --border: #1c2236;
+      --blue: #3b82f6;
+      --cyan: #06b6d4;
+      --green: #22c55e;
+      --red: #ef4444;
+      --orange: #f97316;
+      --text: #e2e8f0;
+      --muted: #64748b;
+      --card: #111827;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+    }
+    body::before {
+      content: '';
+      position: fixed; inset: 0;
+      background-image:
+        linear-gradient(var(--border) 1px, transparent 1px),
+        linear-gradient(90deg, var(--border) 1px, transparent 1px);
+      background-size: 60px 60px;
+      opacity: 0.35;
+      pointer-events: none; z-index: 0;
+    }
+    .wrapper {
+      position: relative; z-index: 1;
+      max-width: 900px; margin: auto;
+      padding: 40px 24px 80px;
+    }
+    .back {
+      display: inline-flex; align-items: center; gap: 8px;
+      color: var(--muted); text-decoration: none;
+      font-size: 0.9rem; margin-bottom: 40px;
+      transition: color 0.2s;
+    }
+    .back:hover { color: var(--blue); }
+    .logo {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.4rem; font-weight: 800;
+      background: linear-gradient(135deg, var(--blue), var(--cyan));
+      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+      background-clip: text; margin-bottom: 32px;
+    }
+    h2 {
+      font-family: 'Syne', sans-serif;
+      font-size: 2rem; font-weight: 800; color: #fff;
+      margin-bottom: 10px;
+    }
+    .subtitle { color: var(--muted); font-size: 0.95rem; margin-bottom: 40px; }
+
+    /* Network grid */
+    .network-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+      gap: 16px;
+      margin-bottom: 40px;
+    }
+
+    .network-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 20px;
+      cursor: pointer;
+      transition: all 0.25s;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .network-card:hover {
+      transform: translateY(-3px);
+      border-color: rgba(59,130,246,0.4);
+    }
+
+    .network-card.selected {
+      border-color: var(--blue);
+      box-shadow: 0 0 20px rgba(59,130,246,0.2);
+    }
+
+    .net-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 14px;
+    }
+
+    .ssid {
+      font-family: 'Syne', sans-serif;
+      font-weight: 700; font-size: 0.95rem;
+      color: #fff;
+    }
+
+    .badge {
+      padding: 4px 10px;
+      border-radius: 100px;
+      font-size: 0.72rem;
+      font-weight: 500;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .badge-safe { background: rgba(34,197,94,0.15); color: var(--green); }
+    .badge-danger { background: rgba(239,68,68,0.15); color: var(--red); }
+    .badge-suspicious { background: rgba(249,115,22,0.15); color: var(--orange); }
+
+    .net-meta {
+      display: flex; gap: 16px;
+      font-size: 0.8rem; color: var(--muted);
+    }
+    .meta-item { display: flex; align-items: center; gap: 5px; }
+
+    /* Signal bar */
+    .signal-bars {
+      display: flex; align-items: flex-end; gap: 2px; height: 14px;
+    }
+    .bar {
+      width: 4px; border-radius: 1px;
+      background: var(--border);
+    }
+    .bar.active { background: var(--green); }
+    .bar:nth-child(1) { height: 4px; }
+    .bar:nth-child(2) { height: 7px; }
+    .bar:nth-child(3) { height: 10px; }
+    .bar:nth-child(4) { height: 14px; }
+
+    /* Detail panel */
+    .detail-panel {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 32px;
+      display: none;
+      animation: fadeIn 0.3s ease;
+    }
+    .detail-panel.show { display: block; }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(8px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .detail-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+      flex-wrap: wrap; gap: 12px;
+    }
+
+    .detail-ssid {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.4rem; font-weight: 800; color: #fff;
+    }
+
+    .detail-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 20px;
+      margin-bottom: 24px;
+    }
+    @media (max-width: 600px) { .detail-grid { grid-template-columns: 1fr; } }
+
+    .detail-stat {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 16px;
+    }
+    .detail-stat-label {
+      font-size: 0.75rem;
+      text-transform: uppercase;
+      letter-spacing: 1px;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+    .detail-stat-value {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.1rem; font-weight: 700;
+    }
+
+    .detail-analysis {
+      background: rgba(255,255,255,0.02);
+      border-left: 3px solid var(--blue);
+      border-radius: 0 8px 8px 0;
+      padding: 16px 20px;
+      margin-bottom: 20px;
+      font-size: 0.9rem;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .tips-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 0.85rem; font-weight: 700;
+      letter-spacing: 1px; text-transform: uppercase;
+      color: var(--muted); margin-bottom: 12px;
+    }
+
+    .tip-item {
+      display: flex; align-items: center; gap: 10px;
+      padding: 8px 0;
+      border-bottom: 1px solid rgba(28,34,54,0.5);
+      font-size: 0.88rem;
+    }
+    .tip-item:last-child { border-bottom: none; }
+
+    .loading-overlay {
+      text-align: center;
+      padding: 48px;
+      color: var(--muted);
+    }
+    .spinner {
+      width: 32px; height: 32px;
+      border: 3px solid var(--border);
+      border-top-color: var(--blue);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      margin: 0 auto 16px;
+    }
+    @keyframes spin { to { transform: rotate(360deg); } }
+  </style>
+</head>
+<body>
+<div class="wrapper">
+  <a href="index.html" class="back">← Back to Home</a>
+  <div class="logo">NETSHIELD</div>
+  <h2>Tourist Wi-Fi Checker</h2>
+  <p class="subtitle">Tap any network below to see its safety analysis, encryption details, and security tips.</p>
+
+  <div id="loadingOverlay" class="loading-overlay">
+    <div class="spinner"></div>
+    <p>Loading nearby networks…</p>
+  </div>
+
+  <div class="network-grid" id="networkGrid"></div>
+
+  <div class="detail-panel" id="detailPanel">
+    <div class="detail-header">
+      <span class="detail-ssid" id="detailSSID"></span>
+      <span class="badge" id="detailBadge"></span>
+    </div>
+    <div class="detail-grid">
+      <div class="detail-stat">
+        <div class="detail-stat-label">Encryption</div>
+        <div class="detail-stat-value" id="detailEnc"></div>
+      </div>
+      <div class="detail-stat">
+        <div class="detail-stat-label">Signal Strength</div>
+        <div class="detail-stat-value" id="detailSignal"></div>
+      </div>
+    </div>
+    <div class="detail-analysis" id="detailDetails"></div>
+    <div class="tips-title">🛡 Security Tips</div>
+    <div id="detailTips"></div>
+  </div>
+</div>
+
+<script>
+  const STATUS_MAP = {
+    safe:       { label: 'Safe',       cls: 'badge-safe',       bars: 4 },
+    suspicious: { label: 'Suspicious', cls: 'badge-suspicious', bars: 2 },
+    danger:     { label: 'High Risk',  cls: 'badge-danger',     bars: 1 },
+  };
+
+  let networks = [];
+
+  function signalBars(count) {
+    let h = '';
+    for (let i = 1; i <= 4; i++)
+      h += `<div class="bar ${i <= count ? 'active' : ''}"></div>`;
+    return `<div class="signal-bars">${h}</div>`;
+  }
+
+  function signalDbm(dbm) {
+    if (dbm >= -50) return 'Excellent';
+    if (dbm >= -65) return 'Good';
+    if (dbm >= -75) return 'Fair';
+    return 'Weak';
+  }
+
+  function renderNetworks(nets) {
+    const grid = document.getElementById('networkGrid');
+    grid.innerHTML = nets.map((n, i) => {
+      const s = STATUS_MAP[n.status] || STATUS_MAP.suspicious;
+      return `
+        <div class="network-card" id="card-${i}" onclick="selectNetwork(${i})">
+          <div class="net-header">
+            <div class="ssid">📶 ${n.ssid}</div>
+            <span class="badge ${s.cls}">${s.label}</span>
+          </div>
+          <div class="net-meta">
+            <div class="meta-item">🔐 ${n.encryption}</div>
+            <div class="meta-item">${signalBars(s.bars)} ${signalDbm(n.signal)}</div>
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  function selectNetwork(i) {
+    // Deselect all
+    document.querySelectorAll('.network-card').forEach(c => c.classList.remove('selected'));
+    document.getElementById(`card-${i}`).classList.add('selected');
+
+    const n = networks[i];
+    const s = STATUS_MAP[n.status] || STATUS_MAP.suspicious;
+
+    document.getElementById('detailSSID').textContent = n.ssid;
+    const badge = document.getElementById('detailBadge');
+    badge.textContent = s.label;
+    badge.className = `badge ${s.cls}`;
+
+    document.getElementById('detailEnc').textContent = n.encryption;
+    document.getElementById('detailSignal').textContent = `${n.signal} dBm (${signalDbm(n.signal)})`;
+    document.getElementById('detailDetails').textContent = n.details;
+
+    document.getElementById('detailTips').innerHTML = n.tips.map(t =>
+      `<div class="tip-item"><span>→</span><span>${t}</span></div>`
+    ).join('');
+
+    const panel = document.getElementById('detailPanel');
+    panel.classList.add('show');
+    panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  async function load() {
+    try {
+      const res = await fetch('/api/scan/tourist');
+      const data = await res.json();
+      networks = data.networks;
+      document.getElementById('loadingOverlay').style.display = 'none';
+      renderNetworks(networks);
+    } catch {
+      document.getElementById('loadingOverlay').innerHTML =
+        '<p style="color:#ef4444">⚠️ Could not reach NetShield backend. Make sure app.py is running.</p>';
+    }
+  }
+
+  load();
+</script>
+</body>
+</html>
