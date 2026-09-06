@@ -4,27 +4,45 @@
   <meta charset="UTF-8">
   <title>NetShield – Tourist Wi-Fi Checker</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
   <style>
+    /* ── Design tokens ────────────────────────────────────────────────── */
     :root {
-      --bg: #07090f;
-      --border: #1c2236;
-      --blue: #3b82f6;
-      --cyan: #06b6d4;
-      --green: #22c55e;
-      --red: #ef4444;
+      --bg:        #07090f;
+      --surface:   #0f1520;
+      --card:      #111827;
+      --border:    #1c2236;
+      --border-hi: #2a3550;
+
+      --blue:   #3b82f6;
+      --cyan:   #06b6d4;
+      --green:  #22c55e;
+      --red:    #ef4444;
       --orange: #f97316;
-      --text: #e2e8f0;
-      --muted: #64748b;
-      --card: #111827;
+      --yellow: #eab308;
+      --purple: #a855f7;
+
+      --text:   #e2e8f0;
+      --muted:  #64748b;
+      --subtle: #94a3b8;
+
+      --radius-sm: 8px;
+      --radius-md: 12px;
+      --radius-lg: 16px;
     }
-    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    /* ── Reset & base ─────────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
     body {
       font-family: 'DM Sans', sans-serif;
       background: var(--bg);
       color: var(--text);
       min-height: 100vh;
+      overflow-x: hidden;
     }
+
+    /* Grid background */
     body::before {
       content: '';
       position: fixed; inset: 0;
@@ -32,21 +50,30 @@
         linear-gradient(var(--border) 1px, transparent 1px),
         linear-gradient(90deg, var(--border) 1px, transparent 1px);
       background-size: 60px 60px;
-      opacity: 0.35;
-      pointer-events: none; z-index: 0;
+      opacity: 0.3;
+      pointer-events: none;
+      z-index: 0;
     }
+
+    /* ── Layout ───────────────────────────────────────────────────────── */
     .wrapper {
       position: relative; z-index: 1;
-      max-width: 900px; margin: auto;
-      padding: 40px 24px 80px;
+      max-width: 960px; margin: auto;
+      padding: 40px 24px 100px;
     }
+
+    /* ── Typography helpers ───────────────────────────────────────────── */
+    .syne { font-family: 'Syne', sans-serif; }
+
+    /* ── Header ───────────────────────────────────────────────────────── */
     .back {
-      display: inline-flex; align-items: center; gap: 8px;
+      display: inline-flex; align-items: center; gap: 6px;
       color: var(--muted); text-decoration: none;
-      font-size: 0.9rem; margin-bottom: 40px;
+      font-size: 0.875rem; margin-bottom: 40px;
       transition: color 0.2s;
     }
     .back:hover { color: var(--blue); }
+
     .logo {
       font-family: 'Syne', sans-serif;
       font-size: 1.4rem; font-weight: 800;
@@ -54,300 +81,1065 @@
       -webkit-background-clip: text; -webkit-text-fill-color: transparent;
       background-clip: text; margin-bottom: 32px;
     }
-    h2 {
-      font-family: 'Syne', sans-serif;
-      font-size: 2rem; font-weight: 800; color: #fff;
-      margin-bottom: 10px;
-    }
-    .subtitle { color: var(--muted); font-size: 0.95rem; margin-bottom: 40px; }
 
-    /* Network grid */
+    .page-title {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(1.6rem, 4vw, 2.4rem);
+      font-weight: 800; color: #fff;
+      margin-bottom: 8px;
+    }
+
+    .subtitle { color: var(--muted); font-size: 0.95rem; margin-bottom: 36px; line-height: 1.6; }
+
+    /* ── Scan stats bar ───────────────────────────────────────────────── */
+    .scan-stats {
+      display: flex; gap: 20px; flex-wrap: wrap;
+      margin-bottom: 28px;
+      padding: 16px 20px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+    }
+    .stat-pill {
+      display: flex; align-items: center; gap: 8px;
+      font-size: 0.82rem; color: var(--subtle);
+    }
+    .stat-pill strong { color: var(--text); font-size: 1rem; font-family: 'Syne', sans-serif; }
+    .stat-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+    }
+
+    /* ── Recommended banner ───────────────────────────────────────────── */
+    .recommended-banner {
+      display: none;
+      align-items: center; gap: 14px;
+      padding: 16px 20px;
+      background: linear-gradient(135deg, rgba(34,197,94,0.12), rgba(6,182,212,0.08));
+      border: 1px solid rgba(34,197,94,0.3);
+      border-radius: var(--radius-md);
+      margin-bottom: 24px;
+      animation: slideDown 0.4s ease;
+    }
+    .recommended-banner.show { display: flex; }
+    .rec-icon { font-size: 1.5rem; }
+    .rec-label { font-size: 0.72rem; text-transform: uppercase; letter-spacing: 1px; color: var(--green); font-weight: 600; }
+    .rec-ssid { font-family: 'Syne', sans-serif; font-size: 1rem; font-weight: 700; color: #fff; }
+
+    @keyframes slideDown {
+      from { opacity: 0; transform: translateY(-8px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── Network grid ─────────────────────────────────────────────────── */
     .network-grid {
       display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-      gap: 16px;
-      margin-bottom: 40px;
+      grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+      gap: 14px;
+      margin-bottom: 36px;
     }
 
     .network-card {
       background: var(--card);
       border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 20px;
+      border-radius: var(--radius-md);
+      padding: 18px 20px;
       cursor: pointer;
-      transition: all 0.25s;
+      transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
       position: relative;
       overflow: hidden;
     }
+    .network-card::before {
+      content: '';
+      position: absolute; top: 0; left: 0; right: 0; height: 2px;
+      background: transparent;
+      transition: background 0.3s;
+    }
+    .network-card.status-safe::before    { background: var(--green); }
+    .network-card.status-suspicious::before { background: var(--orange); }
+    .network-card.status-danger::before  { background: var(--red); }
 
     .network-card:hover {
-      transform: translateY(-3px);
-      border-color: rgba(59,130,246,0.4);
+      transform: translateY(-2px);
+      border-color: var(--border-hi);
     }
-
     .network-card.selected {
       border-color: var(--blue);
-      box-shadow: 0 0 20px rgba(59,130,246,0.2);
+      box-shadow: 0 0 0 1px var(--blue), 0 0 24px rgba(59,130,246,0.15);
+    }
+    .network-card.is-recommended {
+      border-color: rgba(34,197,94,0.4);
+      box-shadow: 0 0 20px rgba(34,197,94,0.1);
+    }
+    .network-card.is-recommended.selected {
+      border-color: var(--green);
+      box-shadow: 0 0 0 1px var(--green), 0 0 24px rgba(34,197,94,0.2);
     }
 
-    .net-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: flex-start;
-      margin-bottom: 14px;
+    /* Card header row */
+    .card-top {
+      display: flex; justify-content: space-between; align-items: flex-start;
+      gap: 8px; margin-bottom: 12px;
     }
 
+    .ssid-row { flex: 1; min-width: 0; }
     .ssid {
       font-family: 'Syne', sans-serif;
-      font-weight: 700; font-size: 0.95rem;
-      color: #fff;
+      font-weight: 700; font-size: 0.9rem; color: #fff;
+      white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
     }
+    .rec-tag {
+      font-size: 0.66rem; color: var(--green);
+      text-transform: uppercase; letter-spacing: 0.8px;
+      margin-top: 2px; display: none;
+    }
+    .is-recommended .rec-tag { display: block; }
 
+    /* Status badge */
     .badge {
-      padding: 4px 10px;
+      flex-shrink: 0;
+      padding: 3px 9px;
       border-radius: 100px;
-      font-size: 0.72rem;
-      font-weight: 500;
-      text-transform: uppercase;
-      letter-spacing: 0.5px;
+      font-size: 0.68rem; font-weight: 600;
+      text-transform: uppercase; letter-spacing: 0.5px;
+      white-space: nowrap;
     }
-    .badge-safe { background: rgba(34,197,94,0.15); color: var(--green); }
-    .badge-danger { background: rgba(239,68,68,0.15); color: var(--red); }
-    .badge-suspicious { background: rgba(249,115,22,0.15); color: var(--orange); }
+    .badge-safe       { background: rgba(34,197,94,0.15);  color: var(--green); }
+    .badge-suspicious { background: rgba(249,115,22,0.15); color: var(--orange);}
+    .badge-danger     { background: rgba(239,68,68,0.15);  color: var(--red);   }
+    .badge-rogue      { background: rgba(239,68,68,0.2);   color: var(--red);   border: 1px solid rgba(239,68,68,0.4); }
 
-    .net-meta {
-      display: flex; gap: 16px;
-      font-size: 0.8rem; color: var(--muted);
+    /* Card meta row */
+    .card-meta {
+      display: flex; gap: 14px; flex-wrap: wrap;
+      font-size: 0.78rem; color: var(--muted);
+      margin-bottom: 12px;
     }
     .meta-item { display: flex; align-items: center; gap: 5px; }
 
-    /* Signal bar */
-    .signal-bars {
-      display: flex; align-items: flex-end; gap: 2px; height: 14px;
+    /* Score bar */
+    .score-row {
+      display: flex; align-items: center; gap: 10px;
     }
-    .bar {
-      width: 4px; border-radius: 1px;
-      background: var(--border);
+    .score-track {
+      flex: 1; height: 4px;
+      background: var(--border); border-radius: 2px; overflow: hidden;
     }
-    .bar.active { background: var(--green); }
+    .score-fill {
+      height: 100%; border-radius: 2px;
+      transition: width 0.6s cubic-bezier(.4,0,.2,1);
+    }
+    .score-num {
+      font-size: 0.75rem; font-weight: 600; min-width: 26px; text-align: right;
+    }
+
+    /* Signal bars */
+    .signal-bars { display: flex; align-items: flex-end; gap: 2px; height: 13px; }
+    .bar { width: 3px; border-radius: 1px; background: var(--border); }
     .bar:nth-child(1) { height: 4px; }
     .bar:nth-child(2) { height: 7px; }
     .bar:nth-child(3) { height: 10px; }
-    .bar:nth-child(4) { height: 14px; }
+    .bar:nth-child(4) { height: 13px; }
+    .bar.active.green  { background: var(--green); }
+    .bar.active.orange { background: var(--orange); }
+    .bar.active.red    { background: var(--red); }
 
-    /* Detail panel */
-    .detail-panel {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 32px;
-      display: none;
-      animation: fadeIn 0.3s ease;
-    }
-    .detail-panel.show { display: block; }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(8px); }
-      to { opacity: 1; transform: translateY(0); }
+    /* Flag pill on card */
+    .flag-pill-row { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 5px; }
+    .flag-pill {
+      font-size: 0.68rem; padding: 2px 8px;
+      background: rgba(239,68,68,0.1); color: var(--red);
+      border-radius: 4px; border: 1px solid rgba(239,68,68,0.2);
     }
 
-    .detail-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 24px;
-      flex-wrap: wrap; gap: 12px;
-    }
-
-    .detail-ssid {
-      font-family: 'Syne', sans-serif;
-      font-size: 1.4rem; font-weight: 800; color: #fff;
-    }
-
-    .detail-grid {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 20px;
-      margin-bottom: 24px;
-    }
-    @media (max-width: 600px) { .detail-grid { grid-template-columns: 1fr; } }
-
-    .detail-stat {
-      background: rgba(255,255,255,0.03);
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      padding: 16px;
-    }
-    .detail-stat-label {
-      font-size: 0.75rem;
-      text-transform: uppercase;
-      letter-spacing: 1px;
-      color: var(--muted);
-      margin-bottom: 6px;
-    }
-    .detail-stat-value {
-      font-family: 'Syne', sans-serif;
-      font-size: 1.1rem; font-weight: 700;
-    }
-
-    .detail-analysis {
-      background: rgba(255,255,255,0.02);
-      border-left: 3px solid var(--blue);
-      border-radius: 0 8px 8px 0;
-      padding: 16px 20px;
-      margin-bottom: 20px;
-      font-size: 0.9rem;
-      color: var(--muted);
-      line-height: 1.6;
-    }
-
-    .tips-title {
-      font-family: 'Syne', sans-serif;
-      font-size: 0.85rem; font-weight: 700;
-      letter-spacing: 1px; text-transform: uppercase;
-      color: var(--muted); margin-bottom: 12px;
-    }
-
-    .tip-item {
-      display: flex; align-items: center; gap: 10px;
-      padding: 8px 0;
-      border-bottom: 1px solid rgba(28,34,54,0.5);
-      font-size: 0.88rem;
-    }
-    .tip-item:last-child { border-bottom: none; }
-
+    /* ── Loading overlay ──────────────────────────────────────────────── */
     .loading-overlay {
-      text-align: center;
-      padding: 48px;
+      text-align: center; padding: 64px 24px;
       color: var(--muted);
     }
     .spinner {
-      width: 32px; height: 32px;
+      width: 36px; height: 36px;
       border: 3px solid var(--border);
       border-top-color: var(--blue);
       border-radius: 50%;
       animation: spin 0.8s linear infinite;
-      margin: 0 auto 16px;
+      margin: 0 auto 18px;
     }
     @keyframes spin { to { transform: rotate(360deg); } }
+
+    /* ── Detail panel ─────────────────────────────────────────────────── */
+    .detail-panel {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 32px;
+      display: none;
+      animation: fadeUp 0.3s ease;
+      margin-top: 8px;
+    }
+    .detail-panel.show { display: block; }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(10px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* Detail header */
+    .detail-header {
+      display: flex; justify-content: space-between;
+      align-items: flex-start; flex-wrap: wrap;
+      gap: 12px; margin-bottom: 24px;
+      padding-bottom: 20px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .detail-ssid {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.5rem; font-weight: 800; color: #fff;
+      margin-bottom: 4px;
+    }
+    .detail-bssid { font-size: 0.78rem; color: var(--muted); font-family: monospace; }
+
+    /* Score ring */
+    .score-ring-wrap { text-align: center; }
+    .score-ring {
+      width: 72px; height: 72px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      position: relative;
+    }
+    .score-ring svg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; transform: rotate(-90deg); }
+    .score-ring-num {
+      font-family: 'Syne', sans-serif;
+      font-size: 1.3rem; font-weight: 800;
+      position: relative; z-index: 1;
+    }
+    .score-ring-label { font-size: 0.68rem; color: var(--muted); margin-top: 4px; }
+
+    /* Info grid */
+    .info-grid {
+      display: grid; grid-template-columns: repeat(3, 1fr);
+      gap: 12px; margin-bottom: 24px;
+    }
+    @media (max-width: 560px) { .info-grid { grid-template-columns: 1fr 1fr; } }
+
+    .info-cell {
+      background: rgba(255,255,255,0.02);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 14px;
+    }
+    .info-label {
+      font-size: 0.7rem; text-transform: uppercase;
+      letter-spacing: 1px; color: var(--muted); margin-bottom: 5px;
+    }
+    .info-val {
+      font-family: 'Syne', sans-serif;
+      font-size: 1rem; font-weight: 700;
+    }
+
+    /* Summary box */
+    .summary-box {
+      padding: 16px 20px;
+      border-radius: var(--radius-sm);
+      border-left: 3px solid var(--blue);
+      background: rgba(59,130,246,0.06);
+      font-size: 0.9rem; line-height: 1.65;
+      color: var(--subtle);
+      margin-bottom: 24px;
+    }
+    .summary-box.safe-bg    { border-color: var(--green);  background: rgba(34,197,94,0.06); }
+    .summary-box.danger-bg  { border-color: var(--red);    background: rgba(239,68,68,0.06); }
+    .summary-box.orange-bg  { border-color: var(--orange); background: rgba(249,115,22,0.06); }
+
+    /* Risk flags section */
+    .section-title {
+      font-family: 'Syne', sans-serif;
+      font-size: 0.78rem; font-weight: 700;
+      text-transform: uppercase; letter-spacing: 1.2px;
+      color: var(--muted); margin-bottom: 12px;
+    }
+
+    .flag-card {
+      background: rgba(239,68,68,0.06);
+      border: 1px solid rgba(239,68,68,0.15);
+      border-radius: var(--radius-sm);
+      padding: 14px 16px;
+      margin-bottom: 10px;
+    }
+    .flag-title {
+      font-weight: 600; font-size: 0.88rem;
+      margin-bottom: 5px; color: #fca5a5;
+    }
+    .flag-explain {
+      font-size: 0.83rem; color: var(--muted); line-height: 1.6;
+    }
+
+    .no-flags {
+      padding: 12px 16px;
+      background: rgba(34,197,94,0.06);
+      border: 1px solid rgba(34,197,94,0.15);
+      border-radius: var(--radius-sm);
+      font-size: 0.87rem; color: #86efac;
+      margin-bottom: 20px;
+    }
+
+    /* Tips */
+    .tip-item {
+      display: flex; gap: 10px; align-items: flex-start;
+      padding: 9px 0;
+      border-bottom: 1px solid rgba(28,34,54,0.6);
+      font-size: 0.87rem; color: var(--subtle);
+      line-height: 1.5;
+    }
+    .tip-item:last-child { border-bottom: none; }
+    .tip-arrow { color: var(--blue); flex-shrink: 0; margin-top: 1px; }
+
+    /* ── Feedback section ─────────────────────────────────────────────── */
+    .feedback-section {
+      margin-top: 28px;
+      padding-top: 24px;
+      border-top: 1px solid var(--border);
+    }
+
+    .feedback-btns {
+      display: flex; gap: 10px; margin-top: 12px; flex-wrap: wrap;
+    }
+
+    .fb-btn {
+      display: flex; align-items: center; gap: 7px;
+      padding: 10px 18px;
+      border-radius: var(--radius-sm);
+      border: 1px solid var(--border);
+      background: transparent;
+      color: var(--subtle); font-family: 'DM Sans', sans-serif;
+      font-size: 0.88rem; font-weight: 500;
+      cursor: pointer; transition: all 0.2s;
+    }
+    .fb-btn:hover { border-color: var(--border-hi); color: var(--text); }
+    .fb-btn.safe-btn:hover,
+    .fb-btn.safe-btn.active {
+      background: rgba(34,197,94,0.12);
+      border-color: rgba(34,197,94,0.4);
+      color: var(--green);
+    }
+    .fb-btn.unsafe-btn:hover,
+    .fb-btn.unsafe-btn.active {
+      background: rgba(239,68,68,0.12);
+      border-color: rgba(239,68,68,0.4);
+      color: var(--red);
+    }
+    .fb-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+    .feedback-comment {
+      margin-top: 12px;
+      display: none;
+      flex-direction: column; gap: 8px;
+    }
+    .feedback-comment.show { display: flex; }
+
+    .fb-textarea {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: var(--radius-sm); color: var(--text);
+      font-family: 'DM Sans', sans-serif; font-size: 0.87rem;
+      padding: 10px 14px; resize: vertical; min-height: 60px;
+      outline: none; transition: border-color 0.2s;
+    }
+    .fb-textarea:focus { border-color: var(--blue); }
+    .fb-textarea::placeholder { color: var(--muted); }
+
+    .fb-submit {
+      align-self: flex-start;
+      padding: 9px 20px;
+      background: var(--blue); color: #fff;
+      border: none; border-radius: var(--radius-sm);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.88rem; font-weight: 600;
+      cursor: pointer; transition: opacity 0.2s;
+    }
+    .fb-submit:hover { opacity: 0.85; }
+
+    .feedback-thanks {
+      display: none; margin-top: 10px;
+      color: var(--green); font-size: 0.88rem;
+      align-items: center; gap: 6px;
+    }
+    .feedback-thanks.show { display: flex; }
+
+    /* ── Rescan button ────────────────────────────────────────────────── */
+    .rescan-btn {
+      display: inline-flex; align-items: center; gap: 8px;
+      padding: 10px 22px;
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius-sm); color: var(--text);
+      font-family: 'DM Sans', sans-serif;
+      font-size: 0.9rem; font-weight: 500;
+      cursor: pointer; margin-bottom: 28px;
+      transition: border-color 0.2s, color 0.2s;
+    }
+    .rescan-btn:hover { border-color: var(--blue); color: var(--blue); }
+    .rescan-btn .spin-icon { display: none; }
+    .rescan-btn.scanning .spin-icon { display: inline-block; animation: spin 0.8s linear infinite; }
+    .rescan-btn.scanning .icon { display: none; }
+
+    /* ── Error state ──────────────────────────────────────────────────── */
+    .error-box {
+      padding: 20px 24px;
+      background: rgba(239,68,68,0.06);
+      border: 1px solid rgba(239,68,68,0.2);
+      border-radius: var(--radius-md);
+      color: #fca5a5;
+      font-size: 0.9rem;
+      line-height: 1.6;
+    }
+
+    /* ── Responsive ───────────────────────────────────────────────────── */
+    @media (max-width: 480px) {
+      .detail-panel { padding: 20px; }
+      .info-grid { grid-template-columns: 1fr 1fr; }
+    }
   </style>
 </head>
 <body>
 <div class="wrapper">
+
+  <!-- Header -->
   <a href="index.html" class="back">← Back to Home</a>
   <div class="logo">NETSHIELD</div>
-  <h2>Tourist Wi-Fi Checker</h2>
-  <p class="subtitle">Tap any network below to see its safety analysis, encryption details, and security tips.</p>
+  <h1 class="page-title">Tourist Wi-Fi Checker</h1>
+  <p class="subtitle">
+    Scan nearby networks and get an instant security score.<br>
+    Tap any network for a full breakdown — we explain everything in plain English.
+  </p>
 
+  <!-- Rescan button -->
+  <button class="rescan-btn" id="rescanBtn" onclick="load()">
+    <span class="icon">↻</span>
+    <span class="spin-icon">◌</span>
+    Rescan Networks
+  </button>
+
+  <!-- Stats bar -->
+  <div class="scan-stats" id="scanStats" style="display:none">
+    <div class="stat-pill">
+      <strong id="statTotal">—</strong> networks found
+    </div>
+    <div class="stat-pill">
+      <span class="stat-dot" style="background:var(--green)"></span>
+      <strong id="statSafe">0</strong> safe
+    </div>
+    <div class="stat-pill">
+      <span class="stat-dot" style="background:var(--orange)"></span>
+      <strong id="statSuspicious">0</strong> caution
+    </div>
+    <div class="stat-pill">
+      <span class="stat-dot" style="background:var(--red)"></span>
+      <strong id="statDanger">0</strong> high risk
+    </div>
+    <div class="stat-pill" style="margin-left:auto; font-size:0.75rem;">
+      Scanned <span id="statTime">—</span>
+    </div>
+  </div>
+
+  <!-- Recommended banner -->
+  <div class="recommended-banner" id="recBanner">
+    <div class="rec-icon">🏆</div>
+    <div>
+      <div class="rec-label">✓ Best Network Recommendation</div>
+      <div class="rec-ssid" id="recSSID">—</div>
+    </div>
+  </div>
+
+  <!-- Loading -->
   <div id="loadingOverlay" class="loading-overlay">
     <div class="spinner"></div>
-    <p>Loading nearby networks…</p>
+    <p>Scanning nearby networks…</p>
   </div>
 
+  <!-- Network grid -->
   <div class="network-grid" id="networkGrid"></div>
 
+  <!-- Detail panel -->
   <div class="detail-panel" id="detailPanel">
+
+    <!-- Header row -->
     <div class="detail-header">
-      <span class="detail-ssid" id="detailSSID"></span>
-      <span class="badge" id="detailBadge"></span>
-    </div>
-    <div class="detail-grid">
-      <div class="detail-stat">
-        <div class="detail-stat-label">Encryption</div>
-        <div class="detail-stat-value" id="detailEnc"></div>
+      <div class="detail-ssid-block">
+        <div class="detail-ssid" id="dSSID"></div>
+        <div class="detail-bssid" id="dBSSID"></div>
       </div>
-      <div class="detail-stat">
-        <div class="detail-stat-label">Signal Strength</div>
-        <div class="detail-stat-value" id="detailSignal"></div>
+      <div class="score-ring-wrap">
+        <div class="score-ring" id="scoreRing">
+          <svg viewBox="0 0 72 72">
+            <circle cx="36" cy="36" r="30" fill="none" stroke="#1c2236" stroke-width="6"/>
+            <circle id="scoreArc" cx="36" cy="36" r="30" fill="none" stroke-width="6"
+                    stroke-dasharray="188.5" stroke-dashoffset="188.5"
+                    stroke-linecap="round" style="transition:stroke-dashoffset 0.8s ease"/>
+          </svg>
+          <span class="score-ring-num" id="dScore">—</span>
+        </div>
+        <div class="score-ring-label">Security Score</div>
       </div>
     </div>
-    <div class="detail-analysis" id="detailDetails"></div>
-    <div class="tips-title">🛡 Security Tips</div>
-    <div id="detailTips"></div>
+
+    <!-- Info cells -->
+    <div class="info-grid">
+      <div class="info-cell">
+        <div class="info-label">Encryption</div>
+        <div class="info-val" id="dEnc">—</div>
+      </div>
+      <div class="info-cell">
+        <div class="info-label">Signal</div>
+        <div class="info-val" id="dSignal">—</div>
+      </div>
+      <div class="info-cell">
+        <div class="info-label">Risk Level</div>
+        <div class="info-val" id="dStatus">—</div>
+      </div>
+    </div>
+
+    <!-- Summary -->
+    <div class="section-title">📋 Analysis</div>
+    <div class="summary-box" id="dSummary"></div>
+
+    <!-- Risk flags -->
+    <div class="section-title">🚨 Risk Factors</div>
+    <div id="dFlags"></div>
+
+    <!-- Tips -->
+    <div class="section-title" style="margin-top:20px">🛡 Security Tips</div>
+    <div id="dTips"></div>
+
+    <!-- Feedback -->
+    <div class="feedback-section">
+      <div class="section-title">💬 Was this assessment accurate?</div>
+      <div class="feedback-btns">
+        <button class="fb-btn safe-btn" id="fbSafe" onclick="submitFeedback('safe')">
+          ✓ Yes, felt safe
+        </button>
+        <button class="fb-btn unsafe-btn" id="fbUnsafe" onclick="submitFeedback('unsafe')">
+          ✗ No, it was risky
+        </button>
+      </div>
+      <div class="feedback-comment" id="fbComment">
+        <textarea class="fb-textarea" id="fbText" placeholder="Tell us more (optional)…"></textarea>
+        <button class="fb-submit" onclick="sendFeedbackComment()">Send Feedback</button>
+      </div>
+      <div class="feedback-thanks" id="fbThanks">
+        ✓ Thanks for your feedback — it helps improve NetShield.
+      </div>
+    </div>
   </div>
+
 </div>
 
 <script>
-  const STATUS_MAP = {
-    safe:       { label: 'Safe',       cls: 'badge-safe',       bars: 4 },
-    suspicious: { label: 'Suspicious', cls: 'badge-suspicious', bars: 2 },
-    danger:     { label: 'High Risk',  cls: 'badge-danger',     bars: 1 },
-  };
+  /* ═══════════════════════════════════════════════════════════════
+     CONFIG
+  ═══════════════════════════════════════════════════════════════ */
+  const API_BASE = 'http://localhost:5000';
 
-  let networks = [];
+  /* ═══════════════════════════════════════════════════════════════
+     SCORING ENGINE
+     Calculates a 0–100 security score for each network based on
+     encryption type, signal strength, rogue-AP flags, and SSID
+     heuristics.
+  ═══════════════════════════════════════════════════════════════ */
 
-  function signalBars(count) {
-    let h = '';
-    for (let i = 1; i <= 4; i++)
-      h += `<div class="bar ${i <= count ? 'active' : ''}"></div>`;
-    return `<div class="signal-bars">${h}</div>`;
+  // Known-risky SSID keywords that frequently appear on honeypot / evil-twin APs
+  const RISKY_SSID_PATTERNS = [
+    /free.*wifi/i, /tourist.*wifi/i, /wifi.*free/i, /public.*wifi/i,
+    /airport.*free/i, /hotel.*free/i, /open.*wifi/i, /guest.*free/i,
+  ];
+
+  // Suspicious SSID keywords (lower risk than above)
+  const SUSPICIOUS_SSID_PATTERNS = [
+    /free/i, /public/i, /guest/i, /tourist/i, /visitor/i,
+  ];
+
+  /**
+   * scoreNetwork(net, allNetworks)
+   *
+   * Returns an enriched copy of `net` with added fields:
+   *   score        {number}  0–100
+   *   status       {string}  'safe' | 'suspicious' | 'danger'
+   *   flags        {Array}   list of { title, explain } risk items
+   *   isRogue      {boolean}
+   *   isRecommended {boolean}
+   *   summary      {string}
+   *   tips         {string[]}
+   */
+  function scoreNetwork(net, allNetworks) {
+    const n = Object.assign({}, net);
+    let score = 100;
+    const flags = [];
+
+    /* 1 ── Encryption check ────────────────────────────────── */
+    const enc = (n.encryption || '').toUpperCase();
+
+    if (enc === 'OPEN' || enc === 'NONE' || enc === '') {
+      score -= 55;
+      flags.push({
+        title: '⚠ No Encryption (Open Network)',
+        explain: 'This network transmits all data in plain text. Anyone nearby with a free tool like Wireshark can intercept your passwords, emails, and browsing traffic in real time.'
+      });
+    } else if (enc.includes('WPA3')) {
+      // WPA3 – full score, no deduction
+    } else if (enc.includes('WPA2')) {
+      score -= 5;
+      // Minor deduction — WPA2 is acceptable but not WPA3
+    } else if (enc.includes('WPA') || enc.includes('TKIP')) {
+      score -= 30;
+      flags.push({
+        title: '⚠ Outdated WPA Encryption',
+        explain: 'WPA (TKIP) was deprecated in 2012 and can be cracked with modern hardware in hours. This network offers significantly weaker protection than WPA2 or WPA3.'
+      });
+    } else {
+      score -= 10;
+    }
+
+    /* 2 ── Rogue / Evil-Twin AP detection ─────────────────── */
+    // If another network shares the same SSID but a different BSSID,
+    // this could be an evil-twin attack.
+    const sameSSID = allNetworks.filter(
+      other => other.ssid === n.ssid && other.bssid !== n.bssid
+    );
+    const isRogue = sameSSID.length > 0;
+    n.isRogue = isRogue;
+
+    if (isRogue) {
+      score -= 30;
+      flags.push({
+        title: '🔴 Possible Evil-Twin / Rogue Access Point',
+        explain: `There are ${sameSSID.length + 1} access points advertising the name "${n.ssid}" with different hardware addresses. Attackers set up fake APs with the same name to intercept traffic. Only connect if you can verify the correct BSSID with venue staff.`
+      });
+    }
+
+    /* 3 ── Risky SSID heuristics ──────────────────────────── */
+    const ssidStr = n.ssid || '';
+    const isHighRiskSSID   = RISKY_SSID_PATTERNS.some(re => re.test(ssidStr));
+    const isMedRiskSSID    = !isHighRiskSSID && SUSPICIOUS_SSID_PATTERNS.some(re => re.test(ssidStr));
+
+    if (isHighRiskSSID && enc === 'OPEN') {
+      score -= 10; // Extra penalty for risky name + open
+      flags.push({
+        title: '⚠ High-Risk Network Name',
+        explain: `"${ssidStr}" matches common honeypot naming patterns. Attackers deliberately choose names like "Free Tourist WiFi" to lure victims onto malicious networks.`
+      });
+    } else if (isMedRiskSSID) {
+      score -= 5;
+      flags.push({
+        title: '⚠ Generic / Tourist-Targeted Name',
+        explain: `"${ssidStr}" uses a generic name that is easy to spoof. Verify with venue staff that this is the official network before connecting.`
+      });
+    }
+
+    /* 4 ── Signal-strength penalty (very weak = unstable) ─── */
+    const sig = n.signal || -80;
+    if (sig < -80) {
+      score -= 5;
+      flags.push({
+        title: 'Weak Signal',
+        explain: `Signal strength is very low (${sig} dBm). Weak signals can cause connection drops and may indicate you are far from the legitimate AP — increasing the chance you are connecting to a closer rogue device.`
+      });
+    }
+
+    /* 5 ── Clamp & derive status ──────────────────────────── */
+    score = Math.max(0, Math.min(100, score));
+    n.score = score;
+
+    if (score >= 75)      n.status = 'safe';
+    else if (score >= 45) n.status = 'suspicious';
+    else                  n.status = 'danger';
+
+    n.flags = flags;
+
+    /* 6 ── Signal label ────────────────────────────────────── */
+    if (sig >= -55)      n.signalLabel = 'Excellent';
+    else if (sig >= -67) n.signalLabel = 'Good';
+    else if (sig >= -75) n.signalLabel = 'Fair';
+    else                 n.signalLabel = 'Weak';
+
+    n.signalBars = sig >= -55 ? 4 : sig >= -67 ? 3 : sig >= -75 ? 2 : 1;
+
+    /* 7 ── Summary text ────────────────────────────────────── */
+    n.summary = buildSummary(n);
+
+    /* 8 ── Security tips ───────────────────────────────────── */
+    n.tips = buildTips(n);
+
+    return n;
   }
 
-  function signalDbm(dbm) {
-    if (dbm >= -50) return 'Excellent';
-    if (dbm >= -65) return 'Good';
-    if (dbm >= -75) return 'Fair';
-    return 'Weak';
+  function buildSummary(n) {
+    const enc = (n.encryption || '').toUpperCase();
+
+    if (n.status === 'danger') {
+      if (enc === 'OPEN' || enc === 'NONE') {
+        return `This is an open network with no encryption whatsoever. Every byte you send — passwords, session cookies, messages — can be read by anyone within range using free, widely available tools. Avoid logging into any accounts or handling sensitive data on this network. If you must use it, ensure every site uses HTTPS and consider using a VPN.`;
+      }
+      return `This network has serious security concerns including ${n.flags.map(f => f.title.replace(/[⚠🔴]/g, '').trim()).join(', ')}. Exercise extreme caution and avoid sensitive activities.`;
+    }
+
+    if (n.status === 'suspicious') {
+      return `This network has some risk factors worth noting. ${enc.includes('WPA2') ? 'WPA2 encryption offers reasonable protection' : enc.includes('WPA3') ? 'WPA3 encryption is strong' : 'Encryption is weak'}. ${n.isRogue ? 'The duplicate network name is a serious concern — verify with venue staff.' : 'Exercise caution and avoid sensitive transactions.'}`;
+    }
+
+    // Safe
+    const encMsg = enc.includes('WPA3')
+      ? 'WPA3 encryption — the strongest available standard'
+      : 'WPA2 encryption — an acceptable modern standard';
+    return `This network appears reasonably secure. It uses ${encMsg} and shows no signs of evil-twin attacks. Still, on any public network you should avoid logging into sensitive accounts without a VPN.`;
   }
 
-  function renderNetworks(nets) {
+  function buildTips(n) {
+    const tips = [];
+    const enc = (n.encryption || '').toUpperCase();
+
+    if (enc === 'OPEN' || enc === 'NONE') {
+      tips.push('Use a VPN — it encrypts your traffic even on open networks.');
+      tips.push('Only visit sites with HTTPS (padlock in browser bar). Never submit passwords on HTTP-only sites.');
+      tips.push('Disable automatic reconnection to this network in your device settings.');
+    }
+
+    if (n.isRogue) {
+      tips.push('Ask venue staff for the exact network name AND the MAC/BSSID before connecting.');
+      tips.push('Do not enter any credentials until you have confirmed you are on the legitimate network.');
+    }
+
+    tips.push('Log out of accounts when done and forget the network in your device Wi-Fi settings.');
+    tips.push('Enable two-factor authentication (2FA) on important accounts as a safety net.');
+
+    if (!enc.includes('WPA3')) {
+      tips.push('Prefer networks using WPA3 encryption — it is the current gold standard for public Wi-Fi.');
+    }
+
+    return tips;
+  }
+
+  /* ═══════════════════════════════════════════════════════════════
+     SIGNAL BARS HTML
+  ═══════════════════════════════════════════════════════════════ */
+  function signalBarsHTML(activeBars, colorClass) {
+    let html = '<div class="signal-bars">';
+    for (let i = 1; i <= 4; i++) {
+      html += `<div class="bar${i <= activeBars ? ' active ' + colorClass : ''}"></div>`;
+    }
+    html += '</div>';
+    return html;
+  }
+
+  function signalColor(status) {
+    if (status === 'safe')       return 'green';
+    if (status === 'suspicious') return 'orange';
+    return 'red';
+  }
+
+  function scoreColor(score) {
+    if (score >= 75) return 'var(--green)';
+    if (score >= 45) return 'var(--orange)';
+    return 'var(--red)';
+  }
+
+  /* ═══════════════════════════════════════════════════════════════
+     RENDER NETWORK GRID
+  ═══════════════════════════════════════════════════════════════ */
+  let enrichedNetworks = [];
+  let selectedIdx = null;
+
+  function renderGrid(networks) {
     const grid = document.getElementById('networkGrid');
-    grid.innerHTML = nets.map((n, i) => {
-      const s = STATUS_MAP[n.status] || STATUS_MAP.suspicious;
-      return `
-        <div class="network-card" id="card-${i}" onclick="selectNetwork(${i})">
-          <div class="net-header">
-            <div class="ssid">📶 ${n.ssid}</div>
-            <span class="badge ${s.cls}">${s.label}</span>
+    grid.innerHTML = '';
+
+    networks.forEach((net, idx) => {
+      const badgeClass = net.isRogue
+        ? 'badge-rogue'
+        : net.status === 'safe'       ? 'badge-safe'
+        : net.status === 'suspicious' ? 'badge-suspicious'
+        : 'badge-danger';
+
+      const badgeLabel = net.isRogue ? '🔴 Rogue?' :
+        net.status === 'safe'       ? '✓ Safe' :
+        net.status === 'suspicious' ? '⚠ Caution' : '✗ High Risk';
+
+      const col = signalColor(net.status);
+      const barsHTML = signalBarsHTML(net.signalBars, col);
+
+      const encColor = (net.encryption || '').toUpperCase().includes('WPA3') ? 'var(--green)'
+        : (net.encryption || '').toUpperCase() === 'OPEN' ? 'var(--red)'
+        : 'var(--orange)';
+
+      const flagPills = net.flags.slice(0, 2).map(f =>
+        `<span class="flag-pill">${f.title.replace(/[⚠🔴]/g, '').trim()}</span>`
+      ).join('');
+
+      const card = document.createElement('div');
+      card.className = [
+        'network-card',
+        `status-${net.status}`,
+        net.isRecommended ? 'is-recommended' : '',
+      ].filter(Boolean).join(' ');
+      card.dataset.idx = idx;
+
+      card.innerHTML = `
+        <div class="card-top">
+          <div class="ssid-row">
+            <div class="ssid">${escapeHTML(net.ssid)}</div>
+            <div class="rec-tag">★ Recommended</div>
           </div>
-          <div class="net-meta">
-            <div class="meta-item">🔐 ${n.encryption}</div>
-            <div class="meta-item">${signalBars(s.bars)} ${signalDbm(n.signal)}</div>
+          <span class="badge ${badgeClass}">${badgeLabel}</span>
+        </div>
+        <div class="card-meta">
+          <span class="meta-item">${barsHTML} ${net.signalLabel}</span>
+          <span class="meta-item" style="color:${encColor}">🔒 ${escapeHTML(net.encryption || 'Unknown')}</span>
+        </div>
+        <div class="score-row">
+          <div class="score-track">
+            <div class="score-fill" style="width:${net.score}%; background:${scoreColor(net.score)}"></div>
           </div>
-        </div>`;
-    }).join('');
+          <span class="score-num" style="color:${scoreColor(net.score)}">${net.score}</span>
+        </div>
+        ${flagPills ? `<div class="flag-pill-row">${flagPills}</div>` : ''}
+      `;
+
+      card.addEventListener('click', () => selectNetwork(idx));
+      grid.appendChild(card);
+    });
   }
 
-  function selectNetwork(i) {
-    // Deselect all
+  /* ═══════════════════════════════════════════════════════════════
+     DETAIL PANEL
+  ═══════════════════════════════════════════════════════════════ */
+  function selectNetwork(idx) {
+    // Update card selection state
     document.querySelectorAll('.network-card').forEach(c => c.classList.remove('selected'));
-    document.getElementById(`card-${i}`).classList.add('selected');
+    const selectedCard = document.querySelector(`.network-card[data-idx="${idx}"]`);
+    if (selectedCard) selectedCard.classList.add('selected');
 
-    const n = networks[i];
-    const s = STATUS_MAP[n.status] || STATUS_MAP.suspicious;
+    // If clicking same card again, toggle closed
+    if (selectedIdx === idx) {
+      selectedIdx = null;
+      document.getElementById('detailPanel').classList.remove('show');
+      selectedCard && selectedCard.classList.remove('selected');
+      return;
+    }
+    selectedIdx = idx;
 
-    document.getElementById('detailSSID').textContent = n.ssid;
-    const badge = document.getElementById('detailBadge');
-    badge.textContent = s.label;
-    badge.className = `badge ${s.cls}`;
-
-    document.getElementById('detailEnc').textContent = n.encryption;
-    document.getElementById('detailSignal').textContent = `${n.signal} dBm (${signalDbm(n.signal)})`;
-    document.getElementById('detailDetails').textContent = n.details;
-
-    document.getElementById('detailTips').innerHTML = n.tips.map(t =>
-      `<div class="tip-item"><span>→</span><span>${t}</span></div>`
-    ).join('');
-
+    const net = enrichedNetworks[idx];
     const panel = document.getElementById('detailPanel');
+
+    /* SSID + BSSID */
+    document.getElementById('dSSID').textContent = net.ssid;
+    document.getElementById('dBSSID').textContent = `BSSID: ${net.bssid || 'N/A'}`;
+
+    /* Score ring */
+    const arc = 188.5; // 2π × r = 2π × 30 ≈ 188.5
+    const offset = arc - (arc * net.score / 100);
+    document.getElementById('scoreArc').style.strokeDashoffset = offset;
+    document.getElementById('scoreArc').style.stroke = scoreColor(net.score);
+    document.getElementById('dScore').textContent = net.score;
+    document.getElementById('dScore').style.color = scoreColor(net.score);
+
+    /* Info cells */
+    const encEl = document.getElementById('dEnc');
+    encEl.textContent = net.encryption || 'Unknown';
+    const enc = (net.encryption || '').toUpperCase();
+    encEl.style.color = enc.includes('WPA3') ? 'var(--green)'
+      : enc === 'OPEN' ? 'var(--red)' : 'var(--orange)';
+
+    document.getElementById('dSignal').textContent = `${net.signalLabel} (${net.signal} dBm)`;
+    const statusEl = document.getElementById('dStatus');
+    statusEl.textContent = net.status === 'safe' ? '🟢 Low Risk'
+      : net.status === 'suspicious' ? '🟡 Moderate Risk'
+      : '🔴 High Risk';
+    statusEl.style.color = scoreColor(net.score);
+
+    /* Summary */
+    const sumBox = document.getElementById('dSummary');
+    sumBox.textContent = net.summary;
+    sumBox.className = 'summary-box ' + (
+      net.status === 'safe'       ? 'safe-bg'   :
+      net.status === 'suspicious' ? 'orange-bg' : 'danger-bg'
+    );
+
+    /* Risk flags */
+    const flagsEl = document.getElementById('dFlags');
+    if (net.flags.length === 0) {
+      flagsEl.innerHTML = '<div class="no-flags">✓ No risk factors detected for this network.</div>';
+    } else {
+      flagsEl.innerHTML = net.flags.map(f => `
+        <div class="flag-card">
+          <div class="flag-title">${escapeHTML(f.title)}</div>
+          <div class="flag-explain">${escapeHTML(f.explain)}</div>
+        </div>
+      `).join('');
+    }
+
+    /* Tips */
+    const tipsEl = document.getElementById('dTips');
+    tipsEl.innerHTML = net.tips.map(tip => `
+      <div class="tip-item">
+        <span class="tip-arrow">→</span>
+        <span>${escapeHTML(tip)}</span>
+      </div>
+    `).join('');
+
+    /* Reset feedback state */
+    resetFeedback();
+
+    /* Show panel and scroll into view */
     panel.classList.add('show');
-    panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    setTimeout(() => {
+      panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }, 50);
   }
 
-  async function load() {
-    try {
-      const res = await fetch('/api/scan/tourist');
-      const data = await res.json();
-      networks = data.networks;
-      document.getElementById('loadingOverlay').style.display = 'none';
-      renderNetworks(networks);
-    } catch {
-      document.getElementById('loadingOverlay').innerHTML =
-        '<p style="color:#ef4444">⚠️ Could not reach NetShield backend. Make sure app.py is running.</p>';
+  /* ═══════════════════════════════════════════════════════════════
+     FEEDBACK
+  ═══════════════════════════════════════════════════════════════ */
+  let feedbackGiven = false;
+
+  function resetFeedback() {
+    feedbackGiven = false;
+    document.getElementById('fbSafe').classList.remove('active');
+    document.getElementById('fbUnsafe').classList.remove('active');
+    document.getElementById('fbSafe').disabled = false;
+    document.getElementById('fbUnsafe').disabled = false;
+    document.getElementById('fbComment').classList.remove('show');
+    document.getElementById('fbThanks').classList.remove('show');
+    document.getElementById('fbText').value = '';
+  }
+
+  function submitFeedback(type) {
+    if (feedbackGiven) return;
+    feedbackGiven = true;
+
+    document.getElementById('fbSafe').classList.toggle('active',   type === 'safe');
+    document.getElementById('fbUnsafe').classList.toggle('active', type === 'unsafe');
+    document.getElementById('fbSafe').disabled   = true;
+    document.getElementById('fbUnsafe').disabled = true;
+    document.getElementById('fbComment').classList.add('show');
+
+    // Optionally POST to backend (non-blocking, best-effort)
+    if (enrichedNetworks[selectedIdx]) {
+      fetch(`${API_BASE}/api/feedback`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ssid:   enrichedNetworks[selectedIdx].ssid,
+          bssid:  enrichedNetworks[selectedIdx].bssid,
+          type,
+          score:  enrichedNetworks[selectedIdx].score,
+        }),
+      }).catch(() => {}); // Silently ignore if /api/feedback doesn't exist yet
     }
   }
 
-  load();
+  function sendFeedbackComment() {
+    const text = document.getElementById('fbText').value.trim();
+    document.getElementById('fbComment').classList.remove('show');
+    document.getElementById('fbThanks').classList.add('show');
+
+    if (text && enrichedNetworks[selectedIdx]) {
+      fetch(`${API_BASE}/api/feedback`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ssid:    enrichedNetworks[selectedIdx].ssid,
+          bssid:   enrichedNetworks[selectedIdx].bssid,
+          comment: text,
+        }),
+      }).catch(() => {});
+    }
+  }
+
+  /* ═══════════════════════════════════════════════════════════════
+     MAIN LOAD FUNCTION  —  called on page load and by Rescan button
+  ═══════════════════════════════════════════════════════════════ */
+  async function load() {
+    // Reset UI state
+    selectedIdx = null;
+    document.getElementById('detailPanel').classList.remove('show');
+    document.getElementById('networkGrid').innerHTML = '';
+    document.getElementById('scanStats').style.display = 'none';
+    document.getElementById('loadingOverlay').style.display = 'block';
+    document.getElementById('recBanner').classList.remove('show');
+
+    const btn = document.getElementById('rescanBtn');
+    btn.classList.add('scanning');
+    btn.disabled = true;
+
+    try {
+      const res = await fetch(`${API_BASE}/api/scan/tourist`);
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ error: 'Unknown server error' }));
+        throw new Error(err.error || `HTTP ${res.status}`);
+      }
+
+      const data = await res.json();
+
+      if (!data.success || !Array.isArray(data.networks) || data.networks.length === 0) {
+        throw new Error(data.error || 'No networks returned from scan.');
+      }
+
+      // Enrich each network with score + flags
+      enrichedNetworks = data.networks.map(n => scoreNetwork(n, data.networks));
+
+      // Sort: highest score first
+      enrichedNetworks.sort((a, b) => b.score - a.score);
+
+      // Mark the best network as recommended (must be at least 'suspicious' tier)
+      const best = enrichedNetworks.find(n => n.status !== 'danger' || enrichedNetworks[0].status === 'danger');
+      if (best) best.isRecommended = true;
+
+      // Stats
+      const nSafe       = enrichedNetworks.filter(n => n.status === 'safe').length;
+      const nSuspicious = enrichedNetworks.filter(n => n.status === 'suspicious').length;
+      const nDanger     = enrichedNetworks.filter(n => n.status === 'danger').length;
+
+      document.getElementById('statTotal').textContent     = enrichedNetworks.length;
+      document.getElementById('statSafe').textContent      = nSafe;
+      document.getElementById('statSuspicious').textContent = nSuspicious;
+      document.getElementById('statDanger').textContent    = nDanger;
+      document.getElementById('statTime').textContent      = new Date().toLocaleTimeString();
+      document.getElementById('scanStats').style.display   = 'flex';
+
+      // Recommended banner
+      if (best) {
+        document.getElementById('recSSID').textContent = best.ssid;
+        document.getElementById('recBanner').classList.add('show');
+      }
+
+      renderGrid(enrichedNetworks);
+
+    } catch (err) {
+      document.getElementById('networkGrid').innerHTML = `
+        <div class="error-box" style="grid-column:1/-1">
+          <strong>Scan failed:</strong> ${escapeHTML(err.message)}<br><br>
+          Make sure the NetShield backend is running at <code>${API_BASE}</code>.<br>
+          Run: <code>python app.py</code>
+        </div>
+      `;
+    } finally {
+      document.getElementById('loadingOverlay').style.display = 'none';
+      btn.classList.remove('scanning');
+      btn.disabled = false;
+    }
+  }
+
+  /* ═══════════════════════════════════════════════════════════════
+     UTILITY
+  ═══════════════════════════════════════════════════════════════ */
+  function escapeHTML(str) {
+    return String(str)
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;');
+  }
+
+  /* ── Auto-load on page open ─────────────────────────────────── */
+  window.addEventListener('DOMContentLoaded', load);
 </script>
 </body>
 </html>

@@ -2,379 +2,586 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>NetShield – Business Scan</title>
+  <title>NetShield – Network Security Audit</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
   <style>
     :root {
-      --bg: #07090f;
-      --surface: #0e1220;
-      --border: #1c2236;
-      --blue: #3b82f6;
-      --cyan: #06b6d4;
-      --green: #22c55e;
-      --red: #ef4444;
-      --orange: #f97316;
-      --text: #e2e8f0;
-      --muted: #64748b;
-      --card: #111827;
+      --bg: #07090f; --border: #1c2236;
+      --blue: #3b82f6; --cyan: #06b6d4;
+      --green: #22c55e; --red: #ef4444;
+      --orange: #f97316; --yellow: #eab308;
+      --text: #e2e8f0; --muted: #64748b; --card: #111827;
     }
     * { box-sizing: border-box; margin: 0; padding: 0; }
-    body {
-      font-family: 'DM Sans', sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      min-height: 100vh;
-    }
+    body { font-family: 'DM Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; }
     body::before {
-      content: '';
-      position: fixed; inset: 0;
-      background-image:
-        linear-gradient(var(--border) 1px, transparent 1px),
-        linear-gradient(90deg, var(--border) 1px, transparent 1px);
-      background-size: 60px 60px;
-      opacity: 0.35;
-      pointer-events: none;
-      z-index: 0;
+      content: ''; position: fixed; inset: 0;
+      background-image: linear-gradient(var(--border) 1px, transparent 1px), linear-gradient(90deg, var(--border) 1px, transparent 1px);
+      background-size: 60px 60px; opacity: 0.3; pointer-events: none; z-index: 0;
     }
-    .wrapper {
-      position: relative; z-index: 1;
-      max-width: 900px; margin: auto;
-      padding: 40px 24px 80px;
-    }
-    .back {
-      display: inline-flex; align-items: center; gap: 8px;
-      color: var(--muted); text-decoration: none;
-      font-size: 0.9rem; margin-bottom: 40px;
-      transition: color 0.2s;
-    }
+    .wrapper { position: relative; z-index: 1; max-width: 860px; margin: auto; padding: 40px 24px 80px; }
+
+    .back { display: inline-flex; align-items: center; gap: 8px; color: var(--muted); text-decoration: none; font-size: 0.9rem; margin-bottom: 40px; transition: color 0.2s; }
     .back:hover { color: var(--blue); }
-    .logo {
-      font-family: 'Syne', sans-serif;
-      font-size: 1.4rem; font-weight: 800;
-      background: linear-gradient(135deg, var(--blue), var(--cyan));
-      -webkit-background-clip: text; -webkit-text-fill-color: transparent;
-      background-clip: text; margin-bottom: 32px;
-    }
-    h2 {
-      font-family: 'Syne', sans-serif;
-      font-size: 2rem; font-weight: 800; color: #fff;
-      margin-bottom: 10px;
-    }
-    .subtitle { color: var(--muted); font-size: 0.95rem; margin-bottom: 40px; }
+    .logo { font-family: 'Syne', sans-serif; font-size: 1.4rem; font-weight: 800; background: linear-gradient(135deg, var(--blue), var(--cyan)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text; margin-bottom: 24px; }
+    h2 { font-family: 'Syne', sans-serif; font-size: 2rem; font-weight: 800; color: #fff; margin-bottom: 8px; }
+    .subtitle { color: var(--muted); font-size: 0.95rem; margin-bottom: 36px; line-height: 1.6; max-width: 600px; }
 
     /* Scan button */
-    .scan-btn {
-      display: flex; align-items: center; gap: 10px;
-      padding: 16px 36px;
-      background: var(--blue);
-      color: #fff; border: none; border-radius: 8px;
-      font-family: 'DM Sans', sans-serif;
-      font-size: 1rem; font-weight: 500;
-      cursor: pointer;
-      box-shadow: 0 0 28px rgba(59,130,246,0.4);
-      transition: all 0.25s;
-    }
-    .scan-btn:hover:not(:disabled) {
-      background: #1d4ed8;
-      transform: translateY(-2px);
-    }
-    .scan-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+    .scan-btn { display: inline-flex; align-items: center; gap: 10px; padding: 16px 36px; background: var(--blue); color: #fff; border: none; border-radius: 8px; font-family: 'DM Sans', sans-serif; font-size: 1rem; font-weight: 500; cursor: pointer; box-shadow: 0 0 28px rgba(59,130,246,0.35); transition: all 0.25s; }
+    .scan-btn:hover:not(:disabled) { background: #1d4ed8; transform: translateY(-2px); }
+    .scan-btn:disabled { opacity: 0.55; cursor: not-allowed; transform: none; }
 
     /* Loading */
-    .loading-box {
-      display: none;
-      margin: 32px 0;
-      padding: 24px;
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-    }
+    .loading-box { display: none; margin: 32px 0; background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 28px; }
     .loading-box.show { display: block; }
-    .loading-steps { list-style: none; }
-    .loading-steps li {
-      padding: 8px 0;
-      color: var(--muted);
-      font-size: 0.9rem;
-      display: flex; align-items: center; gap: 10px;
-    }
-    .loading-steps li.done { color: var(--green); }
-    .loading-steps li.active { color: var(--cyan); }
-    .spinner {
-      width: 14px; height: 14px;
-      border: 2px solid var(--border);
-      border-top-color: var(--cyan);
-      border-radius: 50%;
-      animation: spin 0.8s linear infinite;
-      flex-shrink: 0;
-    }
+    .step-list { list-style: none; }
+    .step-item { display: flex; align-items: flex-start; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--border); font-size: 0.9rem; }
+    .step-item:last-child { border-bottom: none; }
+    .step-item .step-text { line-height: 1.4; }
+    .step-item .step-sub { font-size: 0.78rem; color: var(--muted); margin-top: 2px; }
+    .step-item.waiting { color: var(--muted); opacity: 0.4; }
+    .step-item.active { color: var(--cyan); opacity: 1; }
+    .step-item.done { color: var(--green); opacity: 1; }
+    .spinner { width: 14px; height: 14px; min-width: 14px; border: 2px solid var(--border); border-top-color: var(--cyan); border-radius: 50%; animation: spin 0.8s linear infinite; margin-top: 3px; }
     @keyframes spin { to { transform: rotate(360deg); } }
-    .check { color: var(--green); font-size: 0.9rem; }
 
     /* Results */
-    .results { display: none; margin-top: 32px; }
-    .results.show { display: block; }
+    .results { display: none; margin-top: 36px; }
+    .results.show { display: block; animation: fadeUp 0.4s ease; }
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(12px); } to { opacity: 1; transform: translateY(0); } }
 
-    .score-card {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 32px;
-      display: flex;
-      align-items: center;
-      gap: 32px;
-      margin-bottom: 24px;
-      flex-wrap: wrap;
-    }
-    .score-circle {
-      width: 120px; height: 120px;
-      border-radius: 50%;
-      display: flex; flex-direction: column;
-      align-items: center; justify-content: center;
-      font-family: 'Syne', sans-serif;
-      border: 3px solid;
-      flex-shrink: 0;
-    }
-    .score-num { font-size: 2.2rem; font-weight: 800; }
-    .score-label { font-size: 0.7rem; color: var(--muted); letter-spacing: 1px; }
+    /* Overall verdict */
+    .verdict-card { border-radius: 16px; padding: 32px; margin-bottom: 28px; display: flex; gap: 28px; align-items: flex-start; flex-wrap: wrap; }
+    .verdict-green { background: rgba(34,197,94,0.07); border: 1px solid rgba(34,197,94,0.25); }
+    .verdict-orange { background: rgba(249,115,22,0.07); border: 1px solid rgba(249,115,22,0.25); }
+    .verdict-red { background: rgba(239,68,68,0.07); border: 1px solid rgba(239,68,68,0.25); }
 
-    .score-info h3 {
-      font-family: 'Syne', sans-serif;
-      font-size: 1.3rem; font-weight: 800;
-      margin-bottom: 6px;
-    }
-    .score-info p { color: var(--muted); font-size: 0.9rem; }
-    .scan-meta { font-size: 0.8rem; color: var(--muted); margin-top: 8px; }
+    .verdict-emoji { font-size: 3rem; line-height: 1; flex-shrink: 0; }
+    .verdict-body { flex: 1; }
+    .verdict-headline { font-family: 'Syne', sans-serif; font-size: 1.5rem; font-weight: 800; color: #fff; margin-bottom: 8px; }
+    .verdict-explain { font-size: 0.95rem; line-height: 1.65; margin-bottom: 16px; }
+    .verdict-explain.green { color: #86efac; }
+    .verdict-explain.orange { color: #fdba74; }
+    .verdict-explain.red { color: #fca5a5; }
 
-    /* Two-column grid */
-    .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 24px; }
-    @media (max-width: 600px) { .grid2 { grid-template-columns: 1fr; } .score-card { flex-direction: column; } }
+    .score-row { display: flex; align-items: center; gap: 16px; flex-wrap: wrap; }
+    .score-badge { font-family: 'Syne', sans-serif; font-size: 2rem; font-weight: 800; }
+    .score-bar-wrap { flex: 1; min-width: 140px; }
+    .score-bar-bg { height: 6px; background: var(--border); border-radius: 100px; overflow: hidden; }
+    .score-bar-fill { height: 6px; border-radius: 100px; transition: width 1s ease; }
+    .score-sub { font-size: 0.8rem; color: var(--muted); margin-top: 6px; }
 
-    .card {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 24px;
-    }
-    .card h4 {
-      font-family: 'Syne', sans-serif;
-      font-size: 0.85rem; font-weight: 700;
-      letter-spacing: 1px; text-transform: uppercase;
-      color: var(--muted); margin-bottom: 14px;
-    }
-    .issue-item, .fix-item {
-      display: flex; align-items: flex-start; gap: 10px;
-      padding: 8px 0;
-      border-bottom: 1px solid var(--border);
-      font-size: 0.88rem; line-height: 1.5;
-    }
-    .issue-item:last-child, .fix-item:last-child { border-bottom: none; }
-    .issue-icon { flex-shrink: 0; }
+    .quick-summary { display: flex; gap: 12px; flex-wrap: wrap; margin-top: 16px; }
+    .qs-item { display: flex; align-items: center; gap: 7px; padding: 6px 14px; border-radius: 100px; font-size: 0.82rem; font-weight: 500; }
+    .qs-fail { background: rgba(239,68,68,0.12); color: #f87171; }
+    .qs-warn { background: rgba(249,115,22,0.12); color: var(--orange); }
+    .qs-pass { background: rgba(34,197,94,0.12); color: var(--green); }
 
-    /* Devices table */
-    .devices-card {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 24px;
-      margin-bottom: 24px;
-    }
-    .devices-card h4 {
-      font-family: 'Syne', sans-serif;
-      font-size: 0.85rem; font-weight: 700;
-      letter-spacing: 1px; text-transform: uppercase;
-      color: var(--muted); margin-bottom: 16px;
-    }
-    table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
-    th {
-      text-align: left; padding: 8px 12px;
-      color: var(--muted); font-weight: 500;
-      border-bottom: 1px solid var(--border);
-    }
-    td { padding: 10px 12px; border-bottom: 1px solid rgba(28,34,54,0.5); }
-    tr:last-child td { border-bottom: none; }
-    tr:hover td { background: rgba(59,130,246,0.04); }
-    .vendor-badge {
-      display: inline-block;
-      padding: 2px 8px;
-      border-radius: 100px;
-      font-size: 0.75rem;
-      background: rgba(59,130,246,0.12);
-      color: var(--blue);
-    }
-    .unknown-badge {
-      background: rgba(239,68,68,0.12);
-      color: var(--red);
-    }
+    /* Section heading */
+    .section-heading { font-family: 'Syne', sans-serif; font-size: 0.8rem; font-weight: 700; letter-spacing: 2.5px; text-transform: uppercase; color: var(--muted); margin: 32px 0 14px; }
 
-    .rescan-btn {
-      padding: 12px 28px;
-      background: transparent;
-      border: 1px solid var(--border);
-      color: var(--text);
-      border-radius: 8px;
-      font-family: 'DM Sans', sans-serif;
-      font-size: 0.9rem;
-      cursor: pointer;
-      transition: all 0.2s;
-      margin-top: 8px;
-    }
+    /* Check cards */
+    .check-card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; margin-bottom: 14px; overflow: hidden; transition: border-color 0.2s; }
+    .check-card.fail { border-left: 4px solid var(--red); }
+    .check-card.warn { border-left: 4px solid var(--orange); }
+    .check-card.pass { border-left: 4px solid var(--green); }
+    .check-card.unknown { border-left: 4px solid var(--muted); }
+
+    .check-header { display: flex; align-items: center; gap: 14px; padding: 18px 20px; cursor: pointer; transition: background 0.15s; }
+    .check-header:hover { background: rgba(255,255,255,0.025); }
+
+    .check-icon { font-size: 1.4rem; flex-shrink: 0; width: 36px; text-align: center; }
+
+    .check-middle { flex: 1; min-width: 0; }
+    .check-title { font-weight: 600; font-size: 0.97rem; color: #fff; margin-bottom: 3px; }
+    /* Plain English summary — most important line */
+    .check-summary { font-size: 0.88rem; line-height: 1.45; }
+    .summary-fail { color: #fca5a5; }
+    .summary-warn { color: #fdba74; }
+    .summary-pass { color: #86efac; }
+    .summary-unknown { color: var(--muted); }
+
+    .check-right { display: flex; align-items: center; gap: 10px; flex-shrink: 0; }
+    .status-pill { padding: 4px 12px; border-radius: 100px; font-size: 0.76rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; }
+    .pill-fail { background: rgba(239,68,68,0.15); color: var(--red); }
+    .pill-warn { background: rgba(249,115,22,0.15); color: var(--orange); }
+    .pill-pass { background: rgba(34,197,94,0.15); color: var(--green); }
+    .pill-unknown { background: rgba(100,116,139,0.15); color: var(--muted); }
+    .chevron { color: var(--muted); font-size: 0.75rem; transition: transform 0.25s; }
+    .chevron.open { transform: rotate(180deg); }
+
+    /* Expanded detail */
+    .check-detail { display: none; border-top: 1px solid var(--border); }
+    .check-detail.open { display: block; animation: fadeDown 0.2s ease; }
+    @keyframes fadeDown { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
+    .detail-inner { padding: 20px; }
+
+    /* The three-block layout inside expanded */
+    .explain-block { margin-bottom: 16px; }
+    .block-label { font-size: 0.72rem; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; margin-bottom: 8px; }
+    .label-what { color: var(--blue); }
+    .label-risk { color: var(--red); }
+    .label-fix { color: var(--green); }
+    .label-info { color: var(--cyan); }
+
+    .what-box { background: rgba(59,130,246,0.06); border: 1px solid rgba(59,130,246,0.15); border-radius: 8px; padding: 14px 16px; font-size: 0.88rem; line-height: 1.65; color: var(--text); }
+    .risk-box { background: rgba(239,68,68,0.06); border: 1px solid rgba(239,68,68,0.15); border-radius: 8px; padding: 14px 16px; font-size: 0.88rem; line-height: 1.65; color: var(--text); }
+    .fix-box { background: rgba(34,197,94,0.06); border: 1px solid rgba(34,197,94,0.15); border-radius: 8px; padding: 14px 16px; font-size: 0.88rem; line-height: 1.65; color: var(--text); }
+    .good-box { background: rgba(34,197,94,0.06); border: 1px solid rgba(34,197,94,0.15); border-radius: 8px; padding: 14px 16px; font-size: 0.88rem; line-height: 1.65; color: #86efac; }
+    .info-box { background: rgba(6,182,212,0.06); border: 1px solid rgba(6,182,212,0.15); border-radius: 8px; padding: 14px 16px; font-size: 0.88rem; line-height: 1.65; color: var(--text); }
+
+    /* Fix steps */
+    .fix-steps { list-style: none; padding: 0; }
+    .fix-step { display: flex; gap: 10px; padding: 6px 0; font-size: 0.88rem; line-height: 1.5; color: var(--text); }
+    .step-num { background: rgba(34,197,94,0.2); color: var(--green); width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.72rem; font-weight: 700; flex-shrink: 0; margin-top: 1px; }
+
+    /* Port table */
+    .port-table { width: 100%; border-collapse: collapse; font-size: 0.83rem; margin-top: 4px; }
+    .port-table th { text-align: left; padding: 8px 10px; color: var(--muted); font-weight: 500; border-bottom: 1px solid var(--border); }
+    .port-table td { padding: 10px 10px; border-bottom: 1px solid rgba(28,34,54,0.5); vertical-align: top; line-height: 1.4; }
+    .port-table tr:last-child td { border-bottom: none; }
+    .port-num { font-family: monospace; font-weight: 700; font-size: 0.9rem; }
+    .sev-pill { padding: 2px 8px; border-radius: 100px; font-size: 0.7rem; font-weight: 600; text-transform: uppercase; }
+    .sev-critical { background: rgba(239,68,68,0.2); color: var(--red); }
+    .sev-high { background: rgba(239,68,68,0.12); color: #f87171; }
+    .sev-medium { background: rgba(249,115,22,0.12); color: var(--orange); }
+    .sev-low { background: rgba(234,179,8,0.12); color: var(--yellow); }
+
+    /* Device table */
+    .device-table { width: 100%; border-collapse: collapse; font-size: 0.83rem; margin-top: 4px; }
+    .device-table th { text-align: left; padding: 8px 10px; color: var(--muted); font-weight: 500; border-bottom: 1px solid var(--border); }
+    .device-table td { padding: 10px 10px; border-bottom: 1px solid rgba(28,34,54,0.5); }
+    .device-table tr:last-child td { border-bottom: none; }
+    .tag-unknown { display: inline-block; padding: 2px 8px; border-radius: 100px; font-size: 0.72rem; background: rgba(239,68,68,0.12); color: var(--red); }
+    .tag-known { display: inline-block; padding: 2px 8px; border-radius: 100px; font-size: 0.72rem; background: rgba(34,197,94,0.12); color: var(--green); }
+
+    /* DNS rows */
+    .dns-row { display: flex; align-items: center; gap: 12px; padding: 9px 0; border-bottom: 1px solid rgba(28,34,54,0.5); font-size: 0.88rem; }
+    .dns-row:last-child { border-bottom: none; }
+    .dns-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+
+    /* Rescan */
+    .rescan-btn { margin-top: 24px; padding: 12px 28px; background: transparent; border: 1px solid var(--border); color: var(--text); border-radius: 8px; font-family: 'DM Sans', sans-serif; font-size: 0.9rem; cursor: pointer; transition: all 0.2s; }
     .rescan-btn:hover { border-color: var(--blue); color: var(--blue); }
+
+    @media (max-width: 580px) {
+      .verdict-card { flex-direction: column; gap: 16px; }
+      .check-right { flex-direction: column; align-items: flex-end; gap: 6px; }
+    }
   </style>
 </head>
 <body>
 <div class="wrapper">
   <a href="index.html" class="back">← Back to Home</a>
   <div class="logo">NETSHIELD</div>
-  <h2>Business Network Scan</h2>
-  <p class="subtitle">Performs a real ARP sweep of your network to discover all connected devices and assess security risk.</p>
+  <h2>Network Security Audit</h2>
+  <p class="subtitle">We'll check your network across 5 key security areas and explain what we find in plain English — plus tell you exactly how to fix any problems.</p>
 
-  <button class="scan-btn" id="scanBtn" onclick="startScan()">
-    <span>🔍</span> Start Network Scan
-  </button>
+  <button class="scan-btn" id="scanBtn" onclick="startAudit()">🔍 Run Security Audit</button>
 
   <div class="loading-box" id="loadingBox">
-    <ul class="loading-steps" id="steps">
-      <li id="step1"><span class="spinner"></span> Pinging all subnet hosts…</li>
-      <li id="step2" style="opacity:0.4">— Collecting ARP table…</li>
-      <li id="step3" style="opacity:0.4">— Resolving hostnames &amp; vendors…</li>
-      <li id="step4" style="opacity:0.4">— Calculating security score…</li>
-    </ul>
+    <ul class="step-list" id="stepList"></ul>
   </div>
 
   <div class="results" id="results">
-    <div class="score-card">
-      <div class="score-circle" id="scoreCircle">
-        <span class="score-num" id="scoreNum">—</span>
-        <span class="score-label">/ 100</span>
-      </div>
-      <div class="score-info">
-        <h3 id="riskLabel">—</h3>
-        <p id="deviceCount">—</p>
-        <p class="scan-meta" id="scanMeta"></p>
-      </div>
-    </div>
-
-    <div class="grid2">
-      <div class="card">
-        <h4>⚠️ Issues Found</h4>
-        <div id="issuesList"></div>
-      </div>
-      <div class="card">
-        <h4>✅ Recommended Fixes</h4>
-        <div id="fixesList"></div>
+    <div class="verdict-card" id="verdictCard">
+      <div class="verdict-emoji" id="verdictEmoji"></div>
+      <div class="verdict-body">
+        <div class="verdict-headline" id="verdictHeadline"></div>
+        <div class="verdict-explain" id="verdictExplain"></div>
+        <div class="score-row">
+          <div class="score-badge" id="scoreBadge"></div>
+          <div class="score-bar-wrap">
+            <div class="score-bar-bg"><div class="score-bar-fill" id="scoreBar" style="width:0%"></div></div>
+            <div class="score-sub" id="scoreSub"></div>
+          </div>
+        </div>
+        <div class="quick-summary" id="quickSummary"></div>
       </div>
     </div>
 
-    <div class="devices-card">
-      <h4>📡 Discovered Devices (<span id="devCount">0</span>)</h4>
-      <table>
-        <thead>
-          <tr>
-            <th>IP Address</th>
-            <th>Hostname</th>
-            <th>MAC Address</th>
-            <th>Vendor</th>
-          </tr>
-        </thead>
-        <tbody id="devicesTable"></tbody>
-      </table>
-    </div>
-
-    <button class="rescan-btn" onclick="startScan()">🔄 Scan Again</button>
+    <div class="section-heading">What We Found</div>
+    <div id="checksList"></div>
+    <button class="rescan-btn" onclick="startAudit()">🔄 Run Audit Again</button>
   </div>
 </div>
 
 <script>
-  const COLORS = { green: '#22c55e', orange: '#f97316', red: '#ef4444' };
+  function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
 
-  async function startScan() {
+  // ── Plain-English content for each check ────────────────────────────────
+  const CHECK_CONTENT = {
+    encryption: {
+      icon: '🔐',
+      title: 'WiFi Encryption',
+      what: 'Encryption scrambles the data travelling over your WiFi so that only you and your router can read it. Think of it like sending a letter in a locked box instead of a postcard anyone can read.',
+      summaries: {
+        pass: 'Your WiFi encryption is strong. Data travelling on your network is well protected.',
+        warn: 'Your WiFi encryption is decent but not the latest. There is a small risk from advanced attacks.',
+        fail: 'Your WiFi encryption is weak or missing. Your data could be read by anyone nearby.',
+        unknown: 'We could not determine your encryption type.',
+      }
+    },
+    open_ports: {
+      icon: '🚪',
+      title: 'Router Open Doors (Ports)',
+      what: 'Your router has "doors" called ports — each one is a channel for a different service. Most should be closed. Open doors that are not needed are entry points attackers can use to break in.',
+      summaries: {
+        pass: 'Your router has no dangerous doors left open. Good hygiene.',
+        warn: 'Some unnecessary doors on your router are open. Not urgent, but worth closing.',
+        fail: 'Dangerous doors on your router are wide open. This is a real entry point for attackers.',
+        unknown: 'We could not complete the port scan.',
+      }
+    },
+    router_admin: {
+      icon: '🛠️',
+      title: 'Router Control Panel Exposure',
+      what: 'Your router has an admin control panel — like the "settings" page of your network. If it is reachable without a password or over an unencrypted connection, anyone on your WiFi could potentially take control of your entire network.',
+      summaries: {
+        pass: 'Your router control panel is not openly accessible. That is the safe way.',
+        warn: 'Your router control panel is accessible but uses encryption. Keep the password strong.',
+        fail: 'Your router control panel is exposed over an unencrypted connection. Login credentials can be stolen.',
+        unknown: 'We could not check the router admin panel.',
+      }
+    },
+    unknown_devices: {
+      icon: '📡',
+      title: 'Who Is On Your Network',
+      what: 'We scanned every device connected to your WiFi right now. Every device has a unique hardware ID (MAC address) that reveals the manufacturer — Apple, Samsung, TP-Link, etc. Devices with no recognisable manufacturer are flagged as unknown.',
+      summaries: {
+        pass: 'All devices on your network have identifiable manufacturers. Nothing suspicious.',
+        warn: 'One device with an unrecognised manufacturer is on your network. Worth investigating.',
+        fail: 'Multiple unidentified devices are connected. Someone may be using your WiFi without permission.',
+        unknown: 'Device scan could not complete.',
+      }
+    },
+    dns: {
+      icon: '🗺️',
+      title: 'DNS — Your Internet Directory',
+      what: 'DNS is like a phone book for the internet. When you type "google.com", DNS translates it to the actual server address. If your DNS is hijacked, you could be silently redirected to fake websites — even if the address in your browser looks correct.',
+      summaries: {
+        pass: 'Your DNS is using a trusted, safe provider. You are not being redirected.',
+        warn: 'Your DNS server is unrecognised. It could be your router forwarding safely, or it could be suspicious.',
+        fail: 'Your DNS may be hijacked. You could be visiting fake websites without knowing it.',
+        unknown: 'We could not verify your DNS configuration.',
+      }
+    },
+  };
+
+  const STEP_DEFS = [
+    { id: 'encryption',       label: 'Checking how your WiFi data is protected',        sub: 'Looking at encryption standard — WPA3, WPA2, WPA, or Open' },
+    { id: 'open_ports',       label: 'Looking for open doors on your router',            sub: 'Scanning for FTP, Telnet, UPnP, HTTP admin, and other risky services' },
+    { id: 'router_admin',     label: 'Checking if your router\'s control panel is safe', sub: 'Testing if the admin panel is accessible and whether it uses encryption' },
+    { id: 'unknown_devices',  label: 'Scanning who is connected to your network',        sub: 'Discovering all devices and flagging unrecognised ones' },
+    { id: 'dns',              label: 'Verifying your internet directory is trustworthy',  sub: 'Checking DNS servers and testing for redirect attacks' },
+  ];
+
+  function buildStepList() {
+    const ul = document.getElementById('stepList');
+    ul.innerHTML = STEP_DEFS.map((s, i) => `
+      <li class="step-item waiting" id="step-${i}">
+        <span class="spinner" style="display:none" id="sp-${i}"></span>
+        <span style="width:14px;min-width:14px;text-align:center;font-size:0.85rem" id="si-${i}">—</span>
+        <div>
+          <div class="step-text">${s.label}</div>
+          <div class="step-sub">${s.sub}</div>
+        </div>
+      </li>`).join('');
+  }
+
+  async function animateSteps() {
+    const delays = [0, 3500, 8000, 13000, 19000];
+    for (let i = 0; i < STEP_DEFS.length; i++) {
+      setTimeout(() => {
+        if (i > 0) {
+          const prev = document.getElementById(`step-${i-1}`);
+          if (prev && prev.classList.contains('active')) {
+            prev.className = 'step-item done';
+            document.getElementById(`sp-${i-1}`).style.display = 'none';
+            document.getElementById(`si-${i-1}`).textContent = '✓';
+          }
+        }
+        const el = document.getElementById(`step-${i}`);
+        if (el) {
+          el.className = 'step-item active';
+          document.getElementById(`sp-${i}`).style.display = 'inline-block';
+          document.getElementById(`si-${i}`).textContent = '';
+        }
+      }, delays[i]);
+    }
+  }
+
+  function markAllDone() {
+    STEP_DEFS.forEach((_, i) => {
+      const el = document.getElementById(`step-${i}`);
+      if (el) {
+        el.className = 'step-item done';
+        document.getElementById(`sp-${i}`).style.display = 'none';
+        document.getElementById(`si-${i}`).textContent = '✓';
+      }
+    });
+  }
+
+  async function startAudit() {
     const btn = document.getElementById('scanBtn');
     btn.disabled = true;
-    btn.innerHTML = '<span>⏳</span> Scanning…';
-
+    btn.innerHTML = '⏳ Auditing…';
     document.getElementById('results').classList.remove('show');
-    const lb = document.getElementById('loadingBox');
-    lb.classList.add('show');
 
-    // Animate steps
-    const steps = ['step1','step2','step3','step4'];
-    const labels = [
-      'Pinging all subnet hosts…',
-      'Collecting ARP table…',
-      'Resolving hostnames & vendors…',
-      'Calculating security score…',
-    ];
-    for (let i = 0; i < steps.length; i++) {
-      const el = document.getElementById(steps[i]);
-      el.style.opacity = '1';
-      el.innerHTML = `<span class="spinner"></span> ${labels[i]}`;
-      if (i > 0) {
-        const prev = document.getElementById(steps[i-1]);
-        prev.innerHTML = `<span class="check">✓</span> ${labels[i-1].replace('…','')}`;
-      }
-      await sleep(900);
-    }
+    buildStepList();
+    document.getElementById('loadingBox').classList.add('show');
+    animateSteps();
 
     try {
       const res = await fetch('/api/scan/business', { method: 'POST' });
       const data = await res.json();
-
-      // Mark last step done
-      const last = document.getElementById('step4');
-      last.innerHTML = `<span class="check">✓</span> ${labels[3].replace('…','')}`;
-
-      await sleep(400);
-      lb.classList.remove('show');
-
+      markAllDone();
+      await sleep(500);
+      document.getElementById('loadingBox').classList.remove('show');
       renderResults(data);
     } catch (e) {
-      lb.classList.remove('show');
-      alert('Error: Could not reach the NetShield backend.\nMake sure app.py is running.');
+      document.getElementById('loadingBox').classList.remove('show');
+      alert('Cannot reach the NetShield backend.\nMake sure app.py is running.');
     }
 
     btn.disabled = false;
-    btn.innerHTML = '<span>🔍</span> Start Network Scan';
+    btn.innerHTML = '🔍 Run Security Audit';
   }
 
+  // ── Render results ─────────────────────────────────────────────────────
   function renderResults(data) {
-    const color = COLORS[data.color] || COLORS.orange;
-    const circle = document.getElementById('scoreCircle');
-    circle.style.borderColor = color;
-    circle.style.color = color;
-    document.getElementById('scoreNum').textContent = data.score;
-    document.getElementById('riskLabel').style.color = color;
-    document.getElementById('riskLabel').textContent = data.risk;
-    document.getElementById('deviceCount').textContent = `${data.device_count} device(s) discovered on your network`;
-    document.getElementById('scanMeta').textContent = `Scanned at ${data.scanned_at}`;
+    const color = { green: '#22c55e', orange: '#f97316', red: '#ef4444' }[data.color] || '#f97316';
+    const barColor = { green: '#22c55e', orange: '#f97316', red: '#ef4444' }[data.color] || '#f97316';
 
-    const issuesList = document.getElementById('issuesList');
-    issuesList.innerHTML = data.issues.map(i =>
-      `<div class="issue-item"><span class="issue-icon">⚠️</span><span>${i}</span></div>`
-    ).join('');
+    // Verdict card
+    const card = document.getElementById('verdictCard');
+    card.className = `verdict-card verdict-${data.color}`;
 
-    const fixesList = document.getElementById('fixesList');
-    fixesList.innerHTML = data.fixes.map(f =>
-      `<div class="fix-item"><span class="issue-icon">→</span><span>${f}</span></div>`
-    ).join('');
+    const verdictMap = {
+      green:  { emoji: '✅', headline: 'Your network looks healthy', explain: `We ran 5 security checks on your network and found no serious problems. Your router and WiFi appear to be set up correctly. Keep your router firmware updated regularly to stay protected.` },
+      orange: { emoji: '⚠️', headline: 'Your network has some issues worth fixing', explain: `We found ${data.summary.failed} problem(s) and ${data.summary.warnings} warning(s) on your network. None of these mean you have been hacked right now — but they are gaps that could be exploited. Scroll down to see each issue explained and how to fix it.` },
+      red:    { emoji: '🚨', headline: 'Your network has serious security problems', explain: `We found ${data.summary.failed} serious security issue(s) on your network. These are not just warnings — they are real vulnerabilities that attackers actively look for. Please review and fix the issues below as soon as possible.` },
+    };
+    const v = verdictMap[data.color] || verdictMap.orange;
+    document.getElementById('verdictEmoji').textContent = v.emoji;
+    document.getElementById('verdictHeadline').textContent = v.headline;
+    const explainEl = document.getElementById('verdictExplain');
+    explainEl.textContent = v.explain;
+    explainEl.className = `verdict-explain ${data.color}`;
 
-    const tbody = document.getElementById('devicesTable');
-    tbody.innerHTML = data.devices.map(d => {
-      const isUnknown = d.vendor === 'Unknown Vendor';
-      return `<tr>
-        <td>${d.ip}</td>
-        <td>${d.hostname}</td>
-        <td style="font-family:monospace;font-size:0.8rem">${d.mac}</td>
-        <td><span class="vendor-badge ${isUnknown ? 'unknown-badge' : ''}">${d.vendor}</span></td>
-      </tr>`;
-    }).join('');
-    document.getElementById('devCount').textContent = data.devices.length;
+    document.getElementById('scoreBadge').textContent = `${data.score}/100`;
+    document.getElementById('scoreBadge').style.color = color;
+    setTimeout(() => {
+      document.getElementById('scoreBar').style.width = `${data.score}%`;
+      document.getElementById('scoreBar').style.background = barColor;
+    }, 100);
+    document.getElementById('scoreSub').textContent = `Security score  ·  Router: ${data.router_ip}  ·  Checked ${data.scanned_at}`;
+
+    document.getElementById('quickSummary').innerHTML = `
+      <span class="qs-item qs-fail">✕ ${data.summary.failed} issue${data.summary.failed !== 1 ? 's' : ''}</span>
+      <span class="qs-item qs-warn">⚠ ${data.summary.warnings} warning${data.summary.warnings !== 1 ? 's' : ''}</span>
+      <span class="qs-item qs-pass">✓ ${data.summary.passed} passed</span>
+    `;
+
+    // Check cards
+    document.getElementById('checksList').innerHTML = data.checks.map((c, i) => renderCheck(c, i)).join('');
 
     document.getElementById('results').classList.add('show');
     document.getElementById('results').scrollIntoView({ behavior: 'smooth' });
   }
 
-  function sleep(ms) { return new Promise(r => setTimeout(r, ms)); }
+  function renderCheck(c, idx) {
+    const content = CHECK_CONTENT[c.id] || {};
+    const icon = content.icon || '🔎';
+    const title = content.title || c.name;
+    const summaries = content.summaries || {};
+    const summary = summaries[c.status] || c.value || '';
+
+    const summaryClass = { fail: 'summary-fail', warn: 'summary-warn', pass: 'summary-pass', unknown: 'summary-unknown' }[c.status] || 'summary-unknown';
+    const pillClass = { fail: 'pill-fail', warn: 'pill-warn', pass: 'pill-pass', unknown: 'pill-unknown' }[c.status] || 'pill-unknown';
+    const pillLabel = { fail: 'Action Needed', warn: 'Worth Fixing', pass: 'All Good', unknown: 'Unknown' }[c.status] || 'Unknown';
+
+    // Build the detail body
+    let detailBody = '';
+
+    // "What is this?" block — always shown
+    if (content.what) {
+      detailBody += `
+        <div class="explain-block">
+          <div class="block-label label-what">💡 What is this check?</div>
+          <div class="what-box">${content.what}</div>
+        </div>`;
+    }
+
+    if (c.status === 'pass') {
+      detailBody += `
+        <div class="explain-block">
+          <div class="block-label label-fix">✅ Result</div>
+          <div class="good-box">${summaries.pass || 'No issues found for this check.'}</div>
+        </div>`;
+    }
+
+    if ((c.status === 'fail' || c.status === 'warn') && c.issue) {
+      // Risk in plain English
+      detailBody += `
+        <div class="explain-block">
+          <div class="block-label label-risk">⚠ What's the risk?</div>
+          <div class="risk-box">${humaniseIssue(c)}</div>
+        </div>`;
+
+      // Fix as numbered steps
+      if (c.fix) {
+        const steps = c.fix.split('\n').filter(l => l.trim());
+        detailBody += `
+          <div class="explain-block">
+            <div class="block-label label-fix">🔧 How to fix it</div>
+            <div class="fix-box">
+              <ul class="fix-steps">
+                ${steps.map((s, i) => `<li class="fix-step"><span class="step-num">${i+1}</span><span>${s.replace(/^\d+\.\s*/, '')}</span></li>`).join('')}
+              </ul>
+            </div>
+          </div>`;
+      }
+    }
+
+    // Extra data — open ports
+    if (c.id === 'open_ports' && c.open_ports && c.open_ports.length > 0) {
+      detailBody += `
+        <div class="explain-block">
+          <div class="block-label label-info">🔓 Open ports detail</div>
+          <div class="info-box" style="padding:0;overflow:hidden">
+            <table class="port-table">
+              <thead><tr><th>Port</th><th>Service</th><th>Risk Level</th><th>Plain English</th></tr></thead>
+              <tbody>
+                ${c.open_ports.map(p => `
+                  <tr>
+                    <td><span class="port-num">${p.port}</span></td>
+                    <td>${p.service}</td>
+                    <td><span class="sev-pill sev-${p.severity}">${p.severity}</span></td>
+                    <td style="color:var(--muted)">${portPlainEnglish(p.port)}</td>
+                  </tr>`).join('')}
+              </tbody>
+            </table>
+          </div>
+        </div>`;
+    }
+
+    // Extra data — devices
+    if (c.id === 'unknown_devices' && c.devices && c.devices.length > 0) {
+      detailBody += `
+        <div class="explain-block">
+          <div class="block-label label-info">📋 All devices on your network right now</div>
+          <div class="info-box" style="padding:0;overflow:hidden">
+            <table class="device-table">
+              <thead><tr><th>IP Address</th><th>Device Name</th><th>Hardware ID (MAC)</th><th>Manufacturer</th></tr></thead>
+              <tbody>
+                ${c.devices.map(d => {
+                  const isUnknown = d.vendor === 'Unknown' || d.vendor === 'Unknown Vendor';
+                  return `<tr>
+                    <td>${d.ip}</td>
+                    <td>${d.hostname}</td>
+                    <td style="font-family:monospace;font-size:0.78rem">${d.mac}</td>
+                    <td><span class="${isUnknown ? 'tag-unknown' : 'tag-known'}">${isUnknown ? '⚠ Unknown' : d.vendor}</span></td>
+                  </tr>`;
+                }).join('')}
+              </tbody>
+            </table>
+          </div>
+        </div>`;
+    }
+
+    // Extra data — DNS
+    if (c.id === 'dns' && c.dns_servers && c.dns_servers.length > 0) {
+      const dotColor = { safe: '#22c55e', neutral: '#64748b', suspicious: '#f97316' };
+      detailBody += `
+        <div class="explain-block">
+          <div class="block-label label-info">🗺 DNS servers your network is using</div>
+          <div class="info-box">
+            ${c.dns_servers.map(d => `
+              <div class="dns-row">
+                <div class="dns-dot" style="background:${dotColor[d.status] || '#64748b'}"></div>
+                <span style="font-family:monospace;font-size:0.88rem;min-width:110px">${d.ip}</span>
+                <span style="color:var(--text)">${d.name}</span>
+                <span style="color:var(--muted);font-size:0.8rem;margin-left:auto">${dnsStatusLabel(d.status)}</span>
+              </div>`).join('')}
+          </div>
+        </div>`;
+    }
+
+    // Admin URLs
+    if (c.id === 'router_admin' && c.exposed_urls && c.exposed_urls.length > 0) {
+      detailBody += `
+        <div class="explain-block">
+          <div class="block-label label-info">🌐 Admin panel access points found</div>
+          <div class="info-box">
+            ${c.exposed_urls.map(u => `
+              <div class="dns-row">
+                <div class="dns-dot" style="background:${u.encrypted ? '#22c55e' : '#ef4444'}"></div>
+                <span style="font-family:monospace;font-size:0.85rem">${u.url}</span>
+                <span style="color:var(--muted);font-size:0.8rem;margin-left:auto">${u.encrypted ? 'Encrypted ✓' : 'Not encrypted ✗'}${u.is_login_page ? ' · Login page' : ''}</span>
+              </div>`).join('')}
+          </div>
+        </div>`;
+    }
+
+    return `
+      <div class="check-card ${c.status}" id="card-${idx}">
+        <div class="check-header" onclick="toggle(${idx})">
+          <div class="check-icon">${icon}</div>
+          <div class="check-middle">
+            <div class="check-title">${title}</div>
+            <div class="check-summary ${summaryClass}">${summary}</div>
+          </div>
+          <div class="check-right">
+            <span class="status-pill ${pillClass}">${pillLabel}</span>
+            <span class="chevron" id="chev-${idx}">▼</span>
+          </div>
+        </div>
+        <div class="check-detail" id="detail-${idx}">
+          <div class="detail-inner">${detailBody}</div>
+        </div>
+      </div>`;
+  }
+
+  function toggle(idx) {
+    document.getElementById(`detail-${idx}`).classList.toggle('open');
+    document.getElementById(`chev-${idx}`).classList.toggle('open');
+  }
+
+  // ── Plain English helpers ──────────────────────────────────────────────
+  function humaniseIssue(c) {
+    if (c.id === 'encryption') {
+      if (c.value && c.value.includes('Open')) return 'Your WiFi has no password protection at all. It is like leaving your front door wide open. Anyone within WiFi range can connect and see everything you send — websites, passwords, messages.';
+      if (c.value && c.value.includes('WPA ')) return 'Your WiFi uses an old security standard called WPA. Think of it like a padlock from the 1990s — it works, but a determined attacker with modern tools can break it. You should upgrade to WPA2 or WPA3.';
+      if (c.value && c.value.includes('WPA2')) return 'WPA2 is the most common WiFi security standard and is generally safe. However, older routers running WPA2 may have a known vulnerability called KRACK. Keeping your router firmware updated is the main defence.';
+    }
+    if (c.id === 'open_ports') return `Your router is running services that have their "doors" left open to your network. Each open door is a potential entry point. ${c.issue}`;
+    if (c.id === 'router_admin') return `Your router has an admin control panel that can be reached by anyone on your WiFi — and it is not fully secured. If someone gets in, they can change your WiFi password, DNS settings, and firewall rules — essentially taking over your entire network.`;
+    if (c.id === 'unknown_devices') return `${c.unknown && c.unknown.length > 0 ? c.unknown.length : 'Some'} device(s) on your network cannot be identified by manufacturer. This could be a neighbour or stranger using your WiFi without permission, or a device you have forgotten about. Either way, it deserves a closer look.`;
+    if (c.id === 'dns') return `Your device is using a DNS server that is not one of the well-known trusted providers. This could mean your internet traffic is being quietly redirected. You might type "yourbank.com" and land on a fake copy of the website without realising it.`;
+    return c.issue || '';
+  }
+
+  function portPlainEnglish(port) {
+    const map = {
+      21: 'Old file transfer service — sends your login in plain text',
+      23: 'Old remote control service — completely unencrypted',
+      80: 'Unencrypted web — admin logins can be intercepted',
+      443: 'Encrypted web admin — acceptable but restrict access',
+      8080: 'Alternate web port — often unencrypted admin panel',
+      22: 'Remote access — secure if using keys, risky with passwords',
+      53: 'DNS service — only needed if router is a DNS server',
+      1900: 'UPnP — allows apps to open ports automatically (risky)',
+      5000: 'UPnP or developer service',
+    };
+    return map[port] || 'Unknown service — investigate if not intentionally enabled';
+  }
+
+  function dnsStatusLabel(status) {
+    return { safe: '✓ Trusted provider', neutral: '~ Your router (forwarding)', suspicious: '⚠ Unrecognised' }[status] || '';
+  }
 </script>
 </body>
 </html>
